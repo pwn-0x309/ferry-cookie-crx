@@ -1,0 +1,51 @@
+{
+  "id": "F2",
+  "description": "__Secure- domain cookie keeps secure true; source domain-ness flattens to a host-only localhost cookie",
+  "input": {
+    "sourceOrigin": "https://example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "example.com",
+        "expirationDate": 1800000000.25,
+        "hostOnly": false,
+        "httpOnly": false,
+        "name": "__Secure-id",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "abc123"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1800000000.25,
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "__Secure-id",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "abc123"
+      }
+    ],
+    "report": {
+      "sourceHost": "example.com",
+      "targetHost": "localhost",
+      "emitted": 1,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    }
+  }
+}

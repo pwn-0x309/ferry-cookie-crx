@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "FerryCookie",
+  "version": "1.0.0",
+  "description": "Copy the page's cookies as EditThisCookie v3 JSON, every host rewritten to localhost. Zero egress, no telemetry, nothing persisted.",
+  "minimum_chrome_version": "109",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "FerryCookie — ferry cookies to localhost",
+    "default_popup": "src/popup/popup.html"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "cookies",
+    "storage",
+    "contextMenus",
+    "offscreen",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "commands": {
+    "copy-cookies": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+9",
+        "mac": "Command+Shift+9"
+      },
+      "description": "Copy this page's cookies as localhost JSON"
+    }
+  }
+}

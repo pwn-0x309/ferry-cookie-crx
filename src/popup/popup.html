@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FerryCookie</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>FerryCookie</h1>
+    <p id="source-line" class="meta"></p>
+  </header>
+
+  <section id="guard" hidden>
+    <p id="guard-reason"></p>
+  </section>
+
+  <section id="receipt" hidden>
+    <p><strong id="receipt-count"></strong> <span id="receipt-cookies-label">cookies</span> · grabbed <time id="receipt-time"></time></p>
+  </section>
+
+  <p id="cred-state" class="cred" hidden></p>
+
+  <ul id="flags" class="flags"></ul>
+
+  <section id="preview" hidden>
+    <h2>Would overwrite on localhost</h2>
+    <ul id="preview-list"></ul>
+  </section>
+
+  <footer>
+    <button id="copy" disabled>Copy to clipboard</button>
+    <button id="clear" class="secondary" hidden>Clear clipboard</button>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

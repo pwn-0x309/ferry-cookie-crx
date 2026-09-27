@@ -1,0 +1,64 @@
+{
+  "id": "F6",
+  "description": "Duplicate (name, path, domain) in one grab collapses last-write-wins with a count",
+  "input": {
+    "sourceOrigin": "https://example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "example.com",
+        "expirationDate": 1820000000,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "token",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "first"
+      },
+      {
+        "domain": "example.com",
+        "expirationDate": 1820000001,
+        "hostOnly": false,
+        "httpOnly": true,
+        "name": "token",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "second"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1820000001,
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "token",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "second"
+      }
+    ],
+    "report": {
+      "sourceHost": "example.com",
+      "targetHost": "localhost",
+      "emitted": 1,
+      "duplicatesCollapsed": 1,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    }
+  }
+}

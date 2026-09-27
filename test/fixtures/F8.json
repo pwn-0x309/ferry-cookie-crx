@@ -1,0 +1,124 @@
+{
+  "id": "F8",
+  "description": "sameSite enum edges: None-without-Secure is flagged, all four enum values pass through with no implicit conversion",
+  "input": {
+    "sourceOrigin": "https://app.example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "broken",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "laxone",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "strictone",
+        "path": "/",
+        "sameSite": "strict",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "unspec",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "broken",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "laxone",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "strictone",
+        "path": "/",
+        "sameSite": "strict",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "unspec",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      }
+    ],
+    "report": {
+      "sourceHost": "app.example.com",
+      "targetHost": "localhost",
+      "emitted": 4,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [
+        "broken"
+      ],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    },
+    "json": "[\n  {\n    \"domain\": \"localhost\",\n    \"hostOnly\": true,\n    \"name\": \"broken\",\n    \"path\": \"/\",\n    \"sameSite\": \"no_restriction\",\n    \"secure\": false,\n    \"session\": true,\n    \"storeId\": \"0\",\n    \"value\": \"x\"\n  },\n  {\n    \"domain\": \"localhost\",\n    \"hostOnly\": true,\n    \"name\": \"laxone\",\n    \"path\": \"/\",\n    \"sameSite\": \"lax\",\n    \"secure\": false,\n    \"session\": true,\n    \"storeId\": \"0\",\n    \"value\": \"x\"\n  },\n  {\n    \"domain\": \"localhost\",\n    \"hostOnly\": true,\n    \"name\": \"strictone\",\n    \"path\": \"/\",\n    \"sameSite\": \"strict\",\n    \"secure\": false,\n    \"session\": true,\n    \"storeId\": \"0\",\n    \"value\": \"x\"\n  },\n  {\n    \"domain\": \"localhost\",\n    \"hostOnly\": true,\n    \"name\": \"unspec\",\n    \"path\": \"/\",\n    \"sameSite\": \"unspecified\",\n    \"secure\": false,\n    \"session\": true,\n    \"storeId\": \"0\",\n    \"value\": \"x\"\n  }\n]"
+  }
+}

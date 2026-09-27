@@ -1,0 +1,73 @@
+{
+  "id": "F9",
+  "description": "storeId forms: \"0\" and 0 are both accepted and emitted consistently as the string form",
+  "input": {
+    "sourceOrigin": "https://app.example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "a",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "va"
+      },
+      {
+        "domain": "app.example.com",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "b",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": 0,
+        "value": "vb"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "a",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "va"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "b",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "vb"
+      }
+    ],
+    "report": {
+      "sourceHost": "app.example.com",
+      "targetHost": "localhost",
+      "emitted": 2,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    }
+  }
+}
