@@ -1,0 +1,52 @@
+{
+  "id": "F4",
+  "description": "Unicode and base64 values cross verbatim; escaping belongs to the dialect",
+  "input": {
+    "sourceOrigin": "https://app.example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "app.example.com",
+        "expirationDate": 1790000000.125,
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "prefs",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": false,
+        "storeId": "0",
+        "value": "5L2g5aW9IPCfkY3vvIzwn5GePSJFbmPDi8K7"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1790000000.125,
+        "hostOnly": true,
+        "httpOnly": false,
+        "name": "prefs",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": false,
+        "storeId": "0",
+        "value": "5L2g5aW9IPCfkY3vvIzwn5GePSJFbmPDi8K7"
+      }
+    ],
+    "report": {
+      "sourceHost": "app.example.com",
+      "targetHost": "localhost",
+      "emitted": 1,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    },
+    "json": "[\n  {\n    \"domain\": \"localhost\",\n    \"expirationDate\": 1790000000.125,\n    \"hostOnly\": true,\n    \"name\": \"prefs\",\n    \"path\": \"/\",\n    \"sameSite\": \"lax\",\n    \"secure\": false,\n    \"session\": false,\n    \"storeId\": \"0\",\n    \"value\": \"5L2g5aW9IPCfkY3vvIzwn5GePSJFbmPDi8K7\"\n  }\n]"
+  }
+}

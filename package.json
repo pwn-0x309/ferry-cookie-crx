@@ -1,0 +1,9 @@
+{
+  "name": "ferry-cookie",
+  "private": true,
+  "type": "module",
+  "description": "One-gesture localhost cookie copy (ETC v3). Vanilla JS, no build step — this file only marks ES modules for node --test.",
+  "scripts": {
+    "test": "node --test test/unit/*.test.js"
+  }
+}

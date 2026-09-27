@@ -1,0 +1,140 @@
+:root {
+  color-scheme: light dark;
+  --fg: #1f2937;
+  --muted: #6b7280;
+  --accent: #b45309;
+  --accent-contrast: #ffffff;
+  --warn-bg: #fef3c7;
+  --warn-border: #d97706;
+  --ok-bg: #ecfdf5;
+  --ok-border: #059669;
+  --line: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #f59e0b;
+    --accent-contrast: #1f2937;
+    --warn-bg: #451a03;
+    --warn-border: #b45309;
+    --ok-bg: #022c22;
+    --ok-border: #059669;
+    --line: #374151;
+  }
+}
+
+body {
+  width: 320px;
+  margin: 0;
+  padding: 12px;
+  font: 13px/1.5 system-ui, -apple-system, sans-serif;
+  color: var(--fg);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.meta {
+  margin: 2px 0 8px;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+#guard {
+  padding: 8px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  background: var(--warn-bg);
+}
+
+#guard p {
+  margin: 0;
+}
+
+#receipt {
+  padding: 8px 10px;
+  border: 1px solid var(--ok-border);
+  border-radius: 6px;
+  background: var(--ok-bg);
+}
+
+#receipt p {
+  margin: 0;
+}
+
+.cred {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border: 1px dashed var(--warn-border);
+  border-radius: 6px;
+}
+
+.flags {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+#preview {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+#preview h2 {
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+
+#preview ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+#preview li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+#preview li .path {
+  color: var(--muted);
+  word-break: break-all;
+}
+
+footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+button {
+  flex: 1;
+  padding: 7px 10px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  flex: 0 0 auto;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+}

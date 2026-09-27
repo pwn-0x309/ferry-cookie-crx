@@ -1,0 +1,23 @@
+{
+  "id": "F10",
+  "description": "Empty jar: nothing is emitted, the action is disabled with 'no cookies here', the clipboard is untouched",
+  "input": {
+    "sourceOrigin": "https://plain.example",
+    "targetOrigin": "http://localhost",
+    "cookies": [],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [],
+    "report": {
+      "sourceHost": "plain.example",
+      "targetHost": "localhost",
+      "emitted": 0,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    }
+  }
+}

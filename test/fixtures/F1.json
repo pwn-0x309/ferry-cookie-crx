@@ -1,0 +1,52 @@
+{
+  "id": "F1",
+  "description": "__Host- cookie lands in the only legal local form: secure true, path /, host-only, no domain attribute",
+  "input": {
+    "sourceOrigin": "https://app.example.com",
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "app.example.com",
+        "expirationDate": 1798761600.5,
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "__Host-session",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "s%3Aunicode-sign"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "cookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1798761600.5,
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "__Host-session",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "s%3Aunicode-sign"
+      }
+    ],
+    "report": {
+      "sourceHost": "app.example.com",
+      "targetHost": "localhost",
+      "emitted": 1,
+      "duplicatesCollapsed": 0,
+      "partitionedExcluded": 0,
+      "brokenPairNames": [],
+      "hostPrefixCoercedNames": [],
+      "protectedNames": []
+    },
+    "json": "[\n  {\n    \"domain\": \"localhost\",\n    \"expirationDate\": 1798761600.5,\n    \"hostOnly\": true,\n    \"name\": \"__Host-session\",\n    \"path\": \"/\",\n    \"sameSite\": \"lax\",\n    \"secure\": true,\n    \"session\": false,\n    \"storeId\": \"0\",\n    \"value\": \"s%3Aunicode-sign\"\n  }\n]"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "ferry-cookie-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Playwright harness for FerryCookie e2e. Install here (npm install downloads this playwright version's bundled Chromium, which the run needs); FC_PLAYWRIGHT_ROOT with an existing install works too. Branded Chrome is a last-resort fallback only.",
+  "dependencies": {
+    "playwright": "^1.58.0"
+  }
+}
