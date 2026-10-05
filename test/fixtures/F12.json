@@ -1,0 +1,172 @@
+{
+  "id": "F12",
+  "description": "Mode matrix: fill-gaps never overwrites (kept-existing reported), merge upserts, replace removes the non-incoming remainder (and refuses a zero-row parse), curated lands the checked subset, protected names are locked in every mode",
+  "input": {
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "sid",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": true,
+        "storeId": "0",
+        "value": "new-sid"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "theme",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "dark-new"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "jwt",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": true,
+        "storeId": "0",
+        "value": "new-jwt"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "csrf",
+        "path": "/deep",
+        "sameSite": "strict",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "tok"
+      }
+    ],
+    "localCookies": [
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "theme",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "dark-old"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "jwt",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": true,
+        "storeId": "0",
+        "value": "jwt-old"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "legacy",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "gone"
+      }
+    ],
+    "protectedNames": [],
+    "protectedVariant": ["jwt"]
+  },
+  "expected": {
+    "fillGaps": {
+      "adds": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "csrf", "path": "/deep", "domain": "localhost" }
+      ],
+      "overwrites": [],
+      "removes": [],
+      "keptExisting": [
+        { "name": "theme", "path": "/", "domain": "localhost" },
+        { "name": "jwt", "path": "/", "domain": "localhost" }
+      ],
+      "writesOrder": ["sid", "csrf"],
+      "skippedProtected": [],
+      "math": { "adds": 2, "overwrites": 0, "removes": 0, "keptExisting": 2, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 5, "over": false }
+    },
+    "merge": {
+      "adds": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "csrf", "path": "/deep", "domain": "localhost" }
+      ],
+      "overwrites": [
+        { "name": "theme", "path": "/", "domain": "localhost" },
+        { "name": "jwt", "path": "/", "domain": "localhost" }
+      ],
+      "removes": [],
+      "keptExisting": [],
+      "writesOrder": ["sid", "theme", "jwt", "csrf"],
+      "skippedProtected": [],
+      "math": { "adds": 2, "overwrites": 2, "removes": 0, "keptExisting": 0, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 5, "over": false }
+    },
+    "replace": {
+      "adds": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "csrf", "path": "/deep", "domain": "localhost" }
+      ],
+      "overwrites": [
+        { "name": "theme", "path": "/", "domain": "localhost" },
+        { "name": "jwt", "path": "/", "domain": "localhost" }
+      ],
+      "removes": [{ "name": "legacy", "path": "/", "domain": "localhost", "hostOnly": true }],
+      "keptExisting": [],
+      "writesOrder": ["sid", "theme", "jwt", "csrf"],
+      "skippedProtected": [],
+      "math": { "adds": 2, "overwrites": 2, "removes": 1, "keptExisting": 0, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 4, "over": false }
+    },
+    "replaceProtected": {
+      "adds": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "csrf", "path": "/deep", "domain": "localhost" }
+      ],
+      "overwrites": [{ "name": "theme", "path": "/", "domain": "localhost" }],
+      "removes": [{ "name": "legacy", "path": "/", "domain": "localhost", "hostOnly": true }],
+      "keptExisting": [],
+      "writesOrder": ["sid", "theme", "csrf"],
+      "skippedProtected": ["jwt"],
+      "math": { "adds": 2, "overwrites": 1, "removes": 1, "keptExisting": 0, "excludesProtected": 1 },
+      "capacity": { "projectedJarSize": 4, "over": false }
+    },
+    "curated": {
+      "selected": ["sid", "theme"],
+      "adds": [{ "name": "sid", "path": "/", "domain": "localhost" }],
+      "overwrites": [{ "name": "theme", "path": "/", "domain": "localhost" }],
+      "removes": [],
+      "keptExisting": [],
+      "skippedProtected": [],
+      "writesOrder": ["sid", "theme"],
+      "math": { "adds": 1, "overwrites": 1, "removes": 0, "keptExisting": 0, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 4, "over": false }
+    },
+    "replaceZeroRows": {
+      "refused": "replace refuses to run on a zero-row parse — the Empty Jar incident"
+    },
+    "fillGapsProtected": {
+      "skippedProtected": ["jwt"],
+      "keptExisting": [{ "name": "theme", "path": "/", "domain": "localhost" }],
+      "math": { "adds": 2, "overwrites": 0, "removes": 0, "keptExisting": 1, "excludesProtected": 1 }
+    }
+  }
+}

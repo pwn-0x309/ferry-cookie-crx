@@ -6,6 +6,7 @@
 import { TARGET_DEFAULT, rewriteGrab } from '../core/rewrite.js';
 import { etcV3 } from '../serializers/etc-v3.js';
 import { getAllForTab, pickTargetTab, restrictReason, zeroReason } from '../shared/grab.js';
+import { writeDock } from '../shared/land.js';
 
 const MENU_ID = 'ferry-cookie-copy';
 const COPY_MESSAGE = 'ferry-cookie-copy';
@@ -68,6 +69,20 @@ async function handleGesture(tab) {
       'fc-receipt': receipt,
       'fc-cred': ok ? { holds: true, count: report.emitted, at: Date.now() } : { holds: false, error: 'offscreen clipboard write failed' },
     });
+    // Every successful copy also refreshes the dock (session-scoped FC
+    // envelope) — best-effort: a dock failure must not flip the verdict of
+    // a copy that already reached the clipboard.
+    if (ok) {
+      try {
+        await writeDock(cookies, {
+          grabbedAt: receipt.grabbedAt,
+          sourceOrigin: tab.url,
+          partitionMap: { excluded: report.partitionedExcluded },
+        });
+      } catch {
+        // the dock lane just won't hold this grab; the copy stands
+      }
+    }
     await badge(ok ? String(report.emitted) : '!');
   } catch (err) {
     receipt = { guard: 'error: ' + (err?.message ?? String(err)), grabbedAt: Date.now() };

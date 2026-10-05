@@ -1,0 +1,49 @@
+{
+  "id": "F14",
+  "description": "Envelope round-trip: the dock's FC envelope (ETC-projected rows + meta) serializes and re-parses to identical rows with metadata intact, sniffs as exactly fc-envelope, drives the freshness line, and the same rows serialize to the Playwright dialect per the verified mapping (no httpOnly ever emitted — Q1 ruling)",
+  "input": {
+    "coreCookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1798761600.5,
+        "hostOnly": true,
+        "name": "__Host-session",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "s%3Aværdi-med-øg=="
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "sid",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "plain"
+      }
+    ],
+    "meta": {
+      "grabbedAt": 1790000000000,
+      "sourceOrigin": "https://app.example.com",
+      "partitionMap": { "excluded": 2 }
+    },
+    "now": 1790000123456
+  },
+  "expected": {
+    "dialect": "fc-envelope",
+    "ambiguous": false,
+    "rowsRoundTrip": true,
+    "metaRoundTrip": {
+      "grabbedAt": 1790000000000,
+      "sourceOrigin": "https://app.example.com",
+      "partitionMap": { "excluded": 2 }
+    },
+    "freshness": "grab is 2m old",
+    "playwrightJson": "[\n  {\n    \"domain\": \"localhost\",\n    \"name\": \"__Host-session\",\n    \"path\": \"/\",\n    \"secure\": true,\n    \"value\": \"s%3Aværdi-med-øg==\",\n    \"expires\": 1798761600.5,\n    \"sameSite\": \"Lax\"\n  },\n  {\n    \"domain\": \"localhost\",\n    \"name\": \"sid\",\n    \"path\": \"/\",\n    \"secure\": false,\n    \"value\": \"plain\"\n  }\n]"
+  }
+}

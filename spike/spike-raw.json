@@ -1,0 +1,29 @@
+{
+  "launched": "n/a",
+  "findings": [
+    {
+      "id": "(a) httpOnly:true via set()",
+      "text": "{\n  \"set\": \"ok\",\n  \"jarRow\": {\n    \"httpOnly\": true,\n    \"hostOnly\": true,\n    \"domain\": \"localhost\"\n  }\n}\nverdict: ACCEPTED and stored verbatim"
+    },
+    {
+      "id": "(b) __Host- via set() on http://localhost (REPLAN gate)",
+      "text": "{\n  \"set\": \"ok\",\n  \"jarRow\": {\n    \"secure\": true,\n    \"path\": \"/\",\n    \"hostOnly\": true,\n    \"domain\": \"localhost\"\n  }\n}\nverdict: WRITES — the set() path matches the CDP path v1 proved"
+    },
+    {
+      "id": "(c) partitionKey via set()",
+      "text": "{\n  \"set\": \"ok\",\n  \"landedUnpartitioned\": true,\n  \"landedPartitioned\": true\n}\nverdict: partitionKey writable via set()"
+    },
+    {
+      "id": "(d) >4096-byte value + ~180/jar cap",
+      "text": "{\n  \"set\": \"threw: Failed to parse or set cookie named \\\"spike-big\\\".\",\n  \"valueLength\": null,\n  \"over4096Survived\": false,\n  \"capRowsAttempted\": 220,\n  \"capSetCallsOk\": 220,\n  \"capJarSize\": 161,\n  \"capFirstErrors\": [],\n  \"capSurvivors\": 159\n}\nverdict: values >4096 do not survive whole (truncated/rejected); cap behavior: 220/220 set() calls ok, jar holds 161, survivors 159 — no set() error observed up to 220; the ~180 pre-flight offer is the only guard"
+    },
+    {
+      "id": "(e) per-row error surface",
+      "text": "{\n  \"emptyName\": \"resolved (no throw)\",\n  \"badSameSite\": \"rejected: Error in invocation of cookies.set(object details, optional function callback): Error at parameter 'details': Error at property 'sameSite': Value must be one of lax, no_restriction, strict, unspecified.\",\n  \"unspecified\": \"resolved\",\n  \"explicitDomain\": \"resolved\",\n  \"emptyNameLanded\": true,\n  \"badSameSiteLanded\": false,\n  \"rejectedReturnValue\": \"{\\\"domain\\\":\\\"localhost\\\",\\\"hostOnly\\\":true,\\\"httpOnly\\\":false,\\\"name\\\":\\\"\\\",\\\"path\\\":\\\"/\\\",\\\"sameSite\\\":\\\"unspecified\\\",\\\"secure\\\":false,\\\"session\\\":true,\\\"storeId\\\":\\\"0\\\",\\\"value\\\":\\\"v\\\"}\"\n}\nverdict: set() reports failures via silent resolution — the jar re-read verify step is the only catcher (which is why the report is jar-asserted)"
+    },
+    {
+      "id": "(Q3) clipboard read at click in an extension page under clipboardRead",
+      "text": "{\n  \"read\": \"ok\",\n  \"preview\": \"[\\n  {\\n    \\\"domain\\\": \\\"localhost\\\",\\n    \\\"ex\"\n}\nverdict: readText() at click works under clipboardRead with no prompt — the clipboard lane is prompt-free in the popup"
+    }
+  ]
+}

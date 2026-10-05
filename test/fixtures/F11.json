@@ -1,0 +1,205 @@
+{
+  "id": "F11",
+  "description": "Retarget + foreign split: loopback-shaped rows (localhost, .localhost, 127.0.0.1, *.localhost, [::1] — dot-insensitive) retarget onto the route target flattened host-only; any other domain is skipped-foreign, reported, never written",
+  "input": {
+    "targetOrigin": "http://localhost",
+    "cookies": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1810000000.5,
+        "hostOnly": true,
+        "name": "sid",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "ferried-sid"
+      },
+      {
+        "domain": ".localhost",
+        "hostOnly": false,
+        "name": "theme",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": 0,
+        "value": "dark"
+      },
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "name": "from-v4",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "v4-grab"
+      },
+      {
+        "domain": "app.localhost",
+        "hostOnly": true,
+        "name": "sub",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "subdomain"
+      },
+      {
+        "domain": ".internal.corp",
+        "hostOnly": false,
+        "name": "toss-seed",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "seed"
+      },
+      {
+        "domain": "EXAMPLE.com",
+        "hostOnly": true,
+        "name": "realworld",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "x"
+      },
+      {
+        "domain": "[::1]",
+        "hostOnly": true,
+        "name": "v6",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "v6-grab"
+      }
+    ],
+    "localCookies": [
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "theme",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "light"
+      }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "dialect": "etc-v3",
+    "retargeted": [
+      {
+        "domain": "localhost",
+        "expirationDate": 1810000000.5,
+        "hostOnly": true,
+        "name": "sid",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": true,
+        "session": false,
+        "storeId": "0",
+        "value": "ferried-sid"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "theme",
+        "path": "/",
+        "sameSite": "unspecified",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "dark"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "from-v4",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "v4-grab"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "sub",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "subdomain"
+      },
+      {
+        "domain": "localhost",
+        "hostOnly": true,
+        "name": "v6",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": true,
+        "storeId": "0",
+        "value": "v6-grab"
+      }
+    ],
+    "foreign": [
+      { "name": "toss-seed", "domain": "internal.corp" },
+      { "name": "realworld", "domain": "example.com" }
+    ],
+    "plan": {
+      "adds": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "from-v4", "path": "/", "domain": "localhost" },
+        { "name": "sub", "path": "/", "domain": "localhost" },
+        { "name": "v6", "path": "/", "domain": "localhost" }
+      ],
+      "overwrites": [],
+      "removes": [],
+      "keptExisting": [{ "name": "theme", "path": "/", "domain": "localhost" }],
+      "skippedProtected": [],
+      "writesOrder": ["sid", "from-v4", "sub", "v6"],
+      "math": { "adds": 4, "overwrites": 0, "removes": 0, "keptExisting": 1, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 5, "over": false }
+    },
+    "report": {
+      "landed": [
+        { "name": "sid", "path": "/", "domain": "localhost" },
+        { "name": "from-v4", "path": "/", "domain": "localhost" },
+        { "name": "sub", "path": "/", "domain": "localhost" },
+        { "name": "v6", "path": "/", "domain": "localhost" }
+      ],
+      "overwritten": [],
+      "removed": [],
+      "failed": [],
+      "foreignNames": ["toss-seed", "realworld"],
+      "counts": {
+        "landed": 4,
+        "overwritten": 0,
+        "removed": 0,
+        "skippedForeign": 2,
+        "skippedProtected": 0,
+        "invalid": 0,
+        "failed": 0,
+        "keptExisting": 1,
+        "duplicatesCollapsed": 0
+      },
+      "partial": true
+    }
+  }
+}
