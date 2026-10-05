@@ -4,6 +4,8 @@
 import { TARGET_DEFAULT, jarKey, previewOverlap, rewriteGrab } from '../core/rewrite.js';
 import { etcV3 } from '../serializers/etc-v3.js';
 import { getAllForTab, getLocalJarCookies, pickTargetTab, restrictReason, zeroReason } from '../shared/grab.js';
+import { writeDock } from '../shared/land.js';
+import { initLandFlow } from './land-flow.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -24,6 +26,10 @@ async function init() {
   wireEvents();
   chrome.action.setBadgeText({ text: '' }); // the popup shows the full receipt
   try {
+    // The protect list is session state shared by copy and landing; load it
+    // even on guarded pages so the Land flow can honor it anywhere.
+    const storedProtect = await chrome.storage.session.get({ 'fc-protect': [] });
+    state.protect = storedProtect['fc-protect'] ?? [];
     const tab = await pickTargetTab();
     if (!tab?.url) throw new Error('no active page found');
     state.tab = tab;
@@ -34,6 +40,10 @@ async function init() {
   } catch (err) {
     state.guard = 'error: ' + (err?.message ?? String(err));
   }
+  initLandFlow({
+    getProtect: () => state.protect,
+    getActiveTabUrl: () => state.tab?.url ?? null,
+  });
   render();
 }
 
@@ -66,6 +76,22 @@ async function onCopy() {
     await chrome.storage.session.set({ 'fc-cred': state.cred, 'fc-receipt': receiptOf() });
   } catch (err) {
     state.cred = { holds: false, error: err?.message ?? String(err) };
+    render();
+    return;
+  }
+  // Every successful copy also refreshes the dock (the session-scoped FC
+  // envelope) — best-effort: a dock failure must not flip the verdict of a
+  // copy that already reached the clipboard.
+  if (state.cred.holds) {
+    try {
+      await writeDock(state.grab.cookies, {
+        grabbedAt: state.grabbedAt,
+        sourceOrigin: state.tab.url,
+        partitionMap: { excluded: state.grab.report.partitionedExcluded },
+      });
+    } catch {
+      // the dock lane just won't hold this grab; the copy stands
+    }
   }
   render();
 }

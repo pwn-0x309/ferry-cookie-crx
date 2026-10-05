@@ -1,0 +1,28 @@
+{
+  "id": "F13",
+  "description": "Capacity pre-flight: a landing that would push the jar past ~180 offers auth-class only (session|auth|token|jwt|^sid) instead of failing — no silent drop; the filtered re-plan fits under the cap",
+  "input": {
+    "targetOrigin": "http://localhost",
+    "localCount": 176,
+    "cookies": [
+      { "domain": "localhost", "hostOnly": true, "name": "sid", "path": "/", "sameSite": "lax", "secure": true, "session": true, "storeId": "0", "value": "v" },
+      { "domain": "localhost", "hostOnly": true, "name": "theme", "path": "/", "sameSite": "unspecified", "secure": false, "session": true, "storeId": "0", "value": "v" },
+      { "domain": "localhost", "hostOnly": true, "name": "csrf", "path": "/", "sameSite": "strict", "secure": false, "session": true, "storeId": "0", "value": "v" },
+      { "domain": "localhost", "hostOnly": true, "name": "auth0", "path": "/", "sameSite": "lax", "secure": true, "session": true, "storeId": "0", "value": "v" },
+      { "domain": "localhost", "hostOnly": true, "name": "session-view", "path": "/", "sameSite": "lax", "secure": false, "session": true, "storeId": "0", "value": "v" },
+      { "domain": "localhost", "hostOnly": true, "name": "tracker-x", "path": "/", "sameSite": "lax", "secure": false, "session": true, "storeId": "0", "value": "v" }
+    ],
+    "protectedNames": []
+  },
+  "expected": {
+    "fullPlan": {
+      "math": { "adds": 6, "overwrites": 0, "removes": 0, "keptExisting": 0, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 182, "over": true }
+    },
+    "authClassNames": ["sid", "auth0", "session-view"],
+    "authPlan": {
+      "math": { "adds": 3, "overwrites": 0, "removes": 0, "keptExisting": 0, "excludesProtected": 0 },
+      "capacity": { "projectedJarSize": 179, "over": false }
+    }
+  }
+}

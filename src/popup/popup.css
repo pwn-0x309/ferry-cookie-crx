@@ -138,3 +138,159 @@ button.secondary {
   background: transparent;
   border: 1px solid var(--line);
 }
+
+/* ---- Land flow (mvp2) -------------------------------------------------- */
+
+#land {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+#land h2 {
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+
+#land h3 {
+  font-size: 12px;
+  margin: 8px 0 4px;
+  color: var(--muted);
+}
+
+.land-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.land-row label {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.land-row select,
+.land-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--fg);
+  background: transparent;
+}
+
+#land-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: 11px/1.4 ui-monospace, monospace;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--fg);
+  background: transparent;
+  resize: vertical;
+}
+
+.land-advanced {
+  color: var(--muted);
+}
+
+.warn-line {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  background: var(--warn-bg);
+}
+
+button.full {
+  width: 100%;
+}
+
+#land-math {
+  margin: 6px 0;
+  font-weight: 600;
+}
+
+#land-rows {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+#land-rows li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+#land-rows li .path,
+#land-rows li .fate {
+  color: var(--muted);
+  word-break: break-all;
+}
+
+#land-rows li .fate {
+  flex: 0 0 auto;
+}
+
+#land-rows li.foreign .fate,
+#land-rows li.invalid .fate,
+#land-rows li.failed .fate {
+  color: var(--warn-border);
+  font-weight: 600;
+}
+
+#land-replace-gate {
+  margin: 6px 0;
+}
+
+#land-replace-gate input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  color: var(--fg);
+  background: transparent;
+}
+
+#land-dialect-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+#land-snapshot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#land-snapshot-list li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 2px 0;
+}
+
+#land-snapshot-list li .meta {
+  flex: 1;
+}
+
+#land-report-line {
+  margin: 6px 0;
+  font-weight: 600;
+}
+
+#land-report-line.partial {
+  color: var(--warn-border);
+}
+

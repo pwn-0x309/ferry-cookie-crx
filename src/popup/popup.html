@@ -28,6 +28,106 @@
     <ul id="preview-list"></ul>
   </section>
 
+  <section id="land">
+    <h2 id="land-heading">Land</h2>
+
+    <!-- Lives outside every view container: refusals raised on the diff,
+         report, dialect, or restore screens must stay visible. -->
+    <p id="land-reason" class="meta" hidden></p>
+
+    <div id="land-setup">
+      <div class="land-row">
+        <label for="land-lane">From</label>
+        <select id="land-lane">
+          <option value="dock" selected>Dock (last grab)</option>
+          <option value="clipboard">Clipboard</option>
+          <option value="textarea">Paste</option>
+        </select>
+      </div>
+
+      <div id="land-textarea-row" class="land-row" hidden>
+        <textarea id="land-textarea" rows="4" placeholder="Paste cookie JSON (ETC v3, FC envelope, or Playwright) — no clipboard permission needed" aria-label="Paste cookie JSON"></textarea>
+      </div>
+
+      <div class="land-row">
+        <label for="land-route">To jar</label>
+        <select id="land-route">
+          <option value="localhost" selected>localhost</option>
+          <option value="127.0.0.1">127.0.0.1</option>
+          <option value="[::1]">[::1]</option>
+        </select>
+      </div>
+
+      <div class="land-row land-advanced">
+        <input type="checkbox" id="land-advanced-toggle">
+        <label for="land-advanced-toggle">Advanced: remote targets</label>
+      </div>
+      <div id="land-remote-row" class="land-row" hidden>
+        <input type="text" id="land-remote-host" placeholder="remote host, e.g. staging.internal" aria-label="Remote target host">
+        <p id="land-remote-warning" class="warn-line" hidden>Writes to a remote jar act as you against that backend.</p>
+      </div>
+
+      <div class="land-row">
+        <label for="land-mode">Mode</label>
+        <select id="land-mode">
+          <option value="fill-gaps" selected>fill-gaps (add missing only)</option>
+          <option value="merge">merge (upsert)</option>
+          <option value="replace">replace (clear + write)</option>
+          <option value="curated">curated (pick rows)</option>
+        </select>
+      </div>
+
+      <button id="land-read" class="secondary full">Read input</button>
+
+      <div id="land-snapshots" hidden>
+        <h3>Undo earlier landing</h3>
+        <ul id="land-snapshot-list"></ul>
+      </div>
+    </div>
+
+    <div id="land-dialect" hidden>
+      <p>Input parses as more than one dialect. Which is it?</p>
+      <div id="land-dialect-options"></div>
+      <div class="land-row">
+        <button id="land-dialect-use">Use this dialect</button>
+        <button id="land-dialect-cancel" class="secondary">Cancel</button>
+      </div>
+    </div>
+
+    <div id="land-diff" hidden>
+      <p id="land-freshness" class="meta"></p>
+      <p id="land-math"></p>
+      <p id="land-capacity" class="warn-line" hidden></p>
+      <ul id="land-rows"></ul>
+      <div id="land-replace-gate" hidden>
+        <label for="land-type-land">Replace clears the jar first — type LAND to confirm:</label>
+        <input type="text" id="land-type-land" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="land-row">
+        <button id="land-confirm">Land</button>
+        <button id="land-cancel" class="secondary">Back</button>
+      </div>
+    </div>
+
+    <div id="land-report" hidden>
+      <p id="land-report-line"></p>
+      <ul id="land-report-rows" class="flags"></ul>
+      <div class="land-row">
+        <button id="land-undo" class="secondary">Undo — restore snapshot</button>
+        <button id="land-done" class="secondary">Done</button>
+      </div>
+    </div>
+
+    <div id="land-restore" hidden>
+      <p id="land-restore-line"></p>
+      <p id="land-restore-math"></p>
+      <div class="land-row">
+        <button id="land-restore-confirm">Restore</button>
+        <button id="land-restore-cancel" class="secondary">Back</button>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <button id="copy" disabled>Copy to clipboard</button>
     <button id="clear" class="secondary" hidden>Clear clipboard</button>

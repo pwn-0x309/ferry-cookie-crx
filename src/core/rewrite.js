@@ -144,7 +144,9 @@ export function rewriteGrab(rawCookies, { sourceOrigin, targetOrigin = TARGET_DE
 // overwrite the other — the preview must not claim an overwrite that cannot
 // happen. The grab side is always host-only, so only a local host-only
 // cookie of the same name and path matches.
-function jarEntryKey(cookie) {
+// (mvp2: exported for the landing core — identical identity semantics for
+// the write side; purely additive, v1 behavior unchanged.)
+export function jarEntryKey(cookie) {
   return `${cookie.name}\n${cookie.path}\n${normalizeDomain(cookie.domain)}\n${cookie.hostOnly !== false}`;
 }
 
