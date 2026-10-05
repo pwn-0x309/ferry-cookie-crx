@@ -9,6 +9,15 @@ onto a local jar — with a per-row report and one-click undo.
 Vanilla JS, no build step, no bundler — the whole extension is reviewable in
 one sitting. That is the security pitch.
 
+## Showcase
+
+The whole loop in real screenshots — copy, land, proof, undo, refusals — in
+[docs/showcase.md](docs/showcase.md). The short version:
+
+| Copy | Land | Proof |
+|---|---|---|
+| ![Copy receipt](docs/screenshots/01-copy-grab.png) | ![Land diff](docs/screenshots/04-land-diff.png) | ![Local dev after landing](docs/screenshots/08-local-after.png) |
+
 ## Layout
 
 ```
