@@ -360,6 +360,7 @@ async function main() {
         await targetPage.bringToFront();
         p = await popup();
         await p.waitForFunction(() => document.getElementById('copy')?.disabled === false, null, { timeout: 10000 });
+        await p.click('#preview-details summary'); // the protect list is collapsed by default
         await p.waitForSelector('#preview-list input[data-name="__Host-session"]', { timeout: 5000 });
         await p.check('#preview-list input[data-name="__Host-session"]', { timeout: 5000 });
         await p.waitForFunction(

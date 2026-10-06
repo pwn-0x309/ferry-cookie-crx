@@ -61,9 +61,11 @@ folder.
   cookie count, the source host, and the grab time. *Copy to clipboard* is
   the only thing that writes the clipboard, and only on your click.
 - **Preview & protect:** the popup lists cookies present on both the grab
-  and the local `localhost` jar (ports share one jar). Tick a cookie to
-  protect it: protected names never enter the JSON and are listed in the
-  popup. The protect list (names only) lives in `storage.session`.
+  and the local `localhost` jar (ports share one jar) in a collapsed-by-default
+  **On localhost too** disclosure — it auto-expands on open while anything is
+  protected. Tick a cookie to protect it: protected names never enter the
+  JSON and are listed in the popup. The protect list (names only) lives in
+  `storage.session`.
 - **Clear:** after any copy the popup shows *clipboard holds credentials*
   with a one-tap **Clear clipboard**.
 - **Context menu / shortcut:** right-click → *Copy cookies as localhost
