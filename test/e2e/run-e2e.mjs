@@ -61,8 +61,16 @@ function startServer() {
 
 const results = [];
 function record(name, err) {
-  results.push({ name, ok: !err, err: err ? String(err.message ?? err).split('\n')[0] : null });
-  console.log(`${!err ? 'PASS' : 'FAIL'}  ${name}${err ? ' — ' + String(err.message ?? err).split('\n')[0] : ''}`);
+  const message = err ? String(err.message ?? err) : null;
+  results.push({ name, ok: !err, err: message?.split('\n')[0] ?? null });
+  if (!err) {
+    console.log(`PASS  ${name}`);
+  } else {
+    // Playwright buries the real cause (visibility? pointer events?
+    // stability?) in the call log after the first line — keep a few of them.
+    const detail = message.split('\n').slice(0, 8).join('\n      ');
+    console.log(`FAIL  ${name} — ${detail}`);
+  }
 }
 
 function assertEq(actual, expected, label) {
@@ -90,6 +98,13 @@ async function main() {
     `--load-extension=${extensionDir}`,
     '--no-first-run',
     '--no-default-browser-check',
+    // The suite drives popup tabs that are often behind other windows; if the
+    // OS reports the window occluded, Chromium pauses rAF and throttles
+    // timers, which stalls Playwright's actionability waits mid-test (seen
+    // as a 30s page.check timeout). Keep the renderer fully awake.
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
   ];
 
   // Branded Chrome ignores --load-extension under automation, so prefer the
@@ -346,7 +361,7 @@ async function main() {
         p = await popup();
         await p.waitForFunction(() => document.getElementById('copy')?.disabled === false, null, { timeout: 10000 });
         await p.waitForSelector('#preview-list input[data-name="__Host-session"]', { timeout: 5000 });
-        await p.check('#preview-list input[data-name="__Host-session"]');
+        await p.check('#preview-list input[data-name="__Host-session"]', { timeout: 5000 });
         await p.waitForFunction(
           () => document.getElementById('flags').textContent.includes('protected, not copied'),
           null,
