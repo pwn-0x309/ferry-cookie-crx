@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FerryCookie",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Copy a page's cookies for localhost, then Land them back with a guarded diff, report, and undo. Session-only storage, zero egress.",
   "minimum_chrome_version": "109",
   "icons": {
