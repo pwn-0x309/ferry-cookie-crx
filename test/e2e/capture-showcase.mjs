@@ -74,7 +74,7 @@ try {
 
   const popup = async () => { const p = await ctx.newPage(); await p.setViewportSize({ width: 400, height: 760 }); await p.goto(`chrome-extension://${extensionId}/src/popup/popup.html`); return p; };
 
-  // 01 — copy view: receipt, flags, preview w/ protect checkbox
+  // 01 — copy view: receipt, flags, protect list (expanded for the shot)
   await source.bringToFront();
   let p = await popup();
   try {
@@ -83,6 +83,7 @@ try {
     console.log('DEBUG popup state: ' + (await p.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').slice(0, 400))));
     throw new Error('copy never enabled');
   }
+  await p.click('#preview-details summary');
   await sleep(400);
   await p.screenshot({ path: resolve(outDir, '01-copy-grab.png'), fullPage: true });
 

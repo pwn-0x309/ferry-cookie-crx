@@ -45,6 +45,12 @@ async function init() {
     getActiveTabUrl: () => state.tab?.url ?? null,
   });
   render();
+  // One-time, on popup open: if a protected row is in the preview, expand it
+  // so the checkbox — the only way back out of the protect list — is not
+  // buried in a collapsed section. Later renders never force it either way.
+  if (state.overlap.some((row) => state.protect.includes(row.name))) {
+    $('preview-details').open = true;
+  }
 }
 
 function wireEvents() {
@@ -225,6 +231,7 @@ function renderPreview() {
     return;
   }
   section.hidden = false;
+  $('preview-count').textContent = String(state.overlap.length);
   ul.replaceChildren();
   for (const row of state.overlap) {
     const li = document.createElement('li');

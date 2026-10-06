@@ -90,6 +90,14 @@ header h1 {
   margin: 0 0 4px;
 }
 
+#preview summary {
+  cursor: pointer;
+  user-select: none;
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 #preview ul {
   list-style: none;
   margin: 0;
