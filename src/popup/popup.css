@@ -55,6 +55,10 @@ header h1 {
   margin: 0;
 }
 
+#guard-hint {
+  margin-top: 4px;
+}
+
 #receipt {
   padding: 8px 10px;
   border: 1px solid var(--ok-border);
@@ -147,7 +151,32 @@ button.secondary {
   border: 1px solid var(--line);
 }
 
+/* While a landing is in progress the copy flow demotes: one primary per
+   screen, and the primary belongs to the write the user is reviewing. */
+body.landing #copy {
+  flex: 0 0 auto;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
 /* ---- Land flow (mvp2) -------------------------------------------------- */
+
+#land-quick-meta {
+  margin: 4px 0 8px;
+}
+
+#land-options summary {
+  cursor: pointer;
+  user-select: none;
+  margin: 8px 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+#land-mode-hint {
+  margin: 2px 0 6px;
+}
 
 #land {
   margin-top: 12px;
@@ -252,6 +281,20 @@ button.full {
 #land-rows li.failed .fate {
   color: var(--warn-border);
   font-weight: 600;
+}
+
+#land-rows li.fate-add .fate {
+  color: var(--ok-border);
+}
+
+#land-rows li.fate-overwrite .fate,
+#land-rows li.fate-protected .fate {
+  color: var(--warn-border);
+  font-weight: 600;
+}
+
+#land-rows li.fate-kept .fate {
+  color: var(--muted);
 }
 
 #land-replace-gate {
