@@ -40,6 +40,15 @@ const DIALECT_LABELS = {
   playwright: 'Playwright addCookies array',
 };
 
+// Plain-language consequences, visible where the choice is made — the mode
+// names alone are jargon until the diff explains them.
+const MODE_HINTS = {
+  'fill-gaps': 'Adds only what is missing — cannot overwrite or destroy anything.',
+  merge: 'Adds missing rows and overwrites existing ones in kind.',
+  replace: 'Clears the target jar first — the diff makes you type LAND.',
+  curated: 'You tick exactly which rows land, on the diff screen.',
+};
+
 const $ = (id) => document.getElementById(id);
 
 const PREFS_KEY = 'fc-land-prefs';
@@ -94,9 +103,14 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       // The typed-host row is always visible (loopback typed hosts are
       // default-writable); only the acts-as-you warning follows the toggle.
       $('land-remote-warning').hidden = !$('land-advanced-toggle').checked;
+      renderModeHint();
     } catch {
       // prefs are a convenience; never block the flow on them
     }
+  }
+
+  function renderModeHint() {
+    $('land-mode-hint').textContent = MODE_HINTS[$('land-mode').value] ?? '';
   }
 
   async function savePrefs() {
@@ -117,6 +131,9 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   function show(view) {
     land.view = view;
     for (const id of views) $(id).hidden = id !== 'land-' + view;
+    // While a landing is in progress the copy flow demotes to secondary —
+    // one primary action per screen.
+    document.body.classList.toggle('landing', view !== 'setup');
     if (view === 'setup') renderSnapshotList();
   }
 
@@ -142,17 +159,17 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   // Read (the gesture) → sniff → plan
   // -------------------------------------------------------------------------
 
-  async function onReadInput() {
-    reason('');
-    const targetHost = targetHostOf();
-    const gate = routeGate(targetHost, { advanced: $('land-advanced-toggle').checked });
+  // The one read pipeline, parameterized so the quick action and the power
+  // controls share it: quick pins { dock, localhost, fill-gaps, no advanced }
+  // while the controls path reads the setup selects.
+  async function runRead({ lane, targetHost, mode, advanced }) {
+    const gate = routeGate(targetHost, { advanced });
     if (gate) {
       reason(gate);
       return;
     }
 
     let text;
-    const lane = $('land-lane').value;
     try {
       if (lane === 'dock') {
         text = await readDock();
@@ -190,7 +207,25 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       return;
     }
     land.chosen = { dialect: result.dialect, parse: result.parse };
-    await enterDiff(targetHost);
+    land.gesture = { lane, targetHost, mode, advanced }; // survives the dialect screen
+    await enterDiff(targetHost, mode);
+  }
+
+  async function onReadInput() {
+    reason('');
+    await runRead({
+      lane: $('land-lane').value,
+      targetHost: targetHostOf(),
+      mode: $('land-mode').value,
+      advanced: $('land-advanced-toggle').checked,
+    });
+  }
+
+  // The quick action is the safe path by construction — pinned defaults, no
+  // matter what the power controls or session prefs say.
+  async function onQuickLand() {
+    reason('');
+    await runRead({ lane: 'dock', targetHost: 'localhost', mode: 'fill-gaps', advanced: false });
   }
 
   function renderDialectOptions(candidates) {
@@ -220,13 +255,16 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     if (!checked) return;
     land.chosen = land.candidates[Number(checked.value)];
     land.candidates = null;
-    await enterDiff(targetHostOf());
+    // The dialect screen continues the gesture that opened it — a pinned
+    // quick read keeps its host and mode even though the controls say
+    // something else.
+    const gesture = land.gesture ?? { targetHost: targetHostOf(), mode: $('land-mode').value };
+    await enterDiff(gesture.targetHost, gesture.mode);
   }
 
-  async function enterDiff(targetHost) {
+  async function enterDiff(targetHost, mode) {
     const parse = land.chosen.parse;
     const { rows, foreign, duplicatesCollapsed } = retargetRows(parse.rows, targetHost);
-    const mode = $('land-mode').value;
     if (rows.length === 0 && foreign.length > 0) {
       reason(
         `zero written — every row is foreign, reported and never landed (${foreign
@@ -252,6 +290,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     land.authFiltered = false;
     land.pipeline = {
       targetHost,
+      mode, // the gesture's mode, not the select's live value — quick land pins fill-gaps
       rows,
       foreign,
       filtered: [], // rows dropped by the auth-class capacity offer — never foreign
@@ -324,7 +363,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
 
     const ul = $('land-rows');
     ul.replaceChildren();
-    const curated = $('land-mode').value === 'curated';
+    const curated = pipeline.mode === 'curated';
     for (const row of pipeline.rows) {
       ul.appendChild(renderRowLi(row, curated, rowFate(plan, row)));
     }
@@ -360,10 +399,17 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     updateConfirmGate();
   }
 
+  // Fate presentation: a glyph + color class per outcome, so the one row to
+  // notice (an overwrite) stands out from the quiet safe majority.
+  const FATE_TEXT = { add: '✓ add', overwrite: '↻ overwrite', kept: 'kept' };
+  const FATE_CLASS = { add: 'fate-add', overwrite: 'fate-overwrite', kept: 'fate-kept' };
+
   function renderRowLi(row, curated, fate, extraClass = '') {
     const li = document.createElement('li');
-    if (extraClass) li.className = extraClass;
     const protectedRow = land.pipeline.protect.includes(row.name);
+    li.className = [extraClass, FATE_CLASS[fate] ?? '', protectedRow ? 'fate-protected' : '']
+      .filter(Boolean)
+      .join(' ');
     if (curated && !protectedRow) {
       const box = document.createElement('input');
       box.type = 'checkbox';
@@ -385,7 +431,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     path.textContent = row.path;
     const fateEl = document.createElement('span');
     fateEl.className = 'fate';
-    fateEl.textContent = protectedRow ? 'protected — skipped' : fate;
+    fateEl.textContent = protectedRow ? 'protected — skipped' : (FATE_TEXT[fate] ?? fate);
     li.append(name, path, fateEl);
     return li;
   }
@@ -394,7 +440,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     const { rows, filtered, invalid, targetHost, protect, meta } = land.pipeline;
     const keep = authClassRows(rows);
     land.authFiltered = true;
-    const plan = planLanding(keep, land.localJar, $('land-mode').value, protect);
+    const plan = planLanding(keep, land.localJar, land.pipeline.mode, protect);
     if (plan.refused) {
       reason(plan.refused);
       return;
@@ -512,7 +558,12 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       // says so (removals are the bulk of a restore, not a footnote).
       line.textContent = `restored ${c.landed + c.overwritten + c.removed} — jar-verified` + (report.partial ? ' — PARTIAL: some rows did not make it' : '');
     } else {
-      line.textContent = `landed ${c.landed}/${attempted} — jar-verified` + (report.partial ? ' — PARTIAL: some rows did not make it' : '');
+      // A successful mixed landing must not read as partial: an overwrite is
+      // a written row, so the headline counts it and names the breakdown —
+      // "landed 3/3 (2 added, 1 overwritten)", never "2/3" on success.
+      const written = c.landed + c.overwritten;
+      const breakdown = c.overwritten > 0 ? ` (${c.landed} added, ${c.overwritten} overwritten)` : '';
+      line.textContent = `landed ${written}/${attempted} — jar-verified${breakdown}` + (report.partial ? ' — PARTIAL: some rows did not make it' : '');
     }
     line.classList.toggle('partial', report.partial || Boolean(report.unverified));
 
@@ -650,7 +701,10 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     savePrefs();
   });
   $('land-route').addEventListener('change', savePrefs);
-  $('land-mode').addEventListener('change', savePrefs);
+  $('land-mode').addEventListener('change', () => {
+    renderModeHint();
+    savePrefs();
+  });
   $('land-advanced-toggle').addEventListener('change', () => {
     const on = $('land-advanced-toggle').checked;
     $('land-remote-warning').hidden = !on;
@@ -659,6 +713,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     renderSnapshotList(); // the Restore buttons' gate follows the toggle live
   });
   $('land-read').addEventListener('click', () => guarded(onReadInput));
+  $('land-quick').addEventListener('click', () => guarded(onQuickLand));
   $('land-dialect-use').addEventListener('click', () => guarded(onDialectPick));
   $('land-dialect-cancel').addEventListener('click', () => show('setup'));
   $('land-rows').addEventListener('change', () => {

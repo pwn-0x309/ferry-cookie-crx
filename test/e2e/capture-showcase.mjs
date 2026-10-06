@@ -103,6 +103,7 @@ try {
   await p.screenshot({ path: resolve(outDir, '03-land-setup.png'), fullPage: true });
 
   // 04 — land diff via dock, merge mode: freshness + adds/overwrites math
+  await p.click('#land-options summary'); // the power controls live collapsed
   await p.selectOption('#land-mode', 'merge');
   await p.click('#land-read');
   await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
@@ -133,6 +134,7 @@ try {
   // 09 — foreign input refusal (clipboard lane, textarea for visibility)
   await local.bringToFront();
   p = await popup();
+  await p.click('#land-options summary'); // the power controls live collapsed
   await p.selectOption('#land-lane', 'textarea');
   const foreignJson = JSON.stringify([
     { domain: '.internal.corp', hostOnly: false, name: 'toss-seed', path: '/', sameSite: 'unspecified', secure: false, session: true, storeId: '0', value: 'evil' },

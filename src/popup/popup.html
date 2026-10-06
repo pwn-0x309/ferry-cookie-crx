@@ -13,6 +13,7 @@
 
   <section id="guard" hidden>
     <p id="guard-reason"></p>
+    <p id="guard-hint" class="meta"></p>
   </section>
 
   <section id="receipt" hidden>
@@ -38,48 +39,55 @@
     <p id="land-reason" class="meta" hidden></p>
 
     <div id="land-setup">
-      <div class="land-row">
-        <label for="land-lane">From</label>
-        <select id="land-lane">
-          <option value="dock" selected>Dock (last grab)</option>
-          <option value="clipboard">Clipboard</option>
-          <option value="textarea">Paste</option>
-        </select>
-      </div>
+      <button id="land-quick" class="full">Land last grab → localhost</button>
+      <p id="land-quick-meta" class="meta">Safe by construction: dock → localhost, adds only — every row is reviewed before anything is written.</p>
 
-      <div id="land-textarea-row" class="land-row" hidden>
-        <textarea id="land-textarea" rows="4" placeholder="Paste cookie JSON (ETC v3, FC envelope, or Playwright) — no clipboard permission needed" aria-label="Paste cookie JSON"></textarea>
-      </div>
+      <details id="land-options">
+        <summary>Change source, route, or mode</summary>
+        <div class="land-row">
+          <label for="land-lane">From</label>
+          <select id="land-lane">
+            <option value="dock" selected>Dock (last grab)</option>
+            <option value="clipboard">Clipboard</option>
+            <option value="textarea">Paste</option>
+          </select>
+        </div>
 
-      <div class="land-row">
-        <label for="land-route">To jar</label>
-        <select id="land-route">
-          <option value="localhost" selected>localhost</option>
-          <option value="127.0.0.1">127.0.0.1</option>
-          <option value="[::1]">[::1]</option>
-        </select>
-      </div>
+        <div id="land-textarea-row" class="land-row" hidden>
+          <textarea id="land-textarea" rows="4" placeholder="Paste cookie JSON (ETC v3, FC envelope, or Playwright) — no clipboard permission needed" aria-label="Paste cookie JSON"></textarea>
+        </div>
 
-      <div class="land-row land-advanced">
-        <input type="checkbox" id="land-advanced-toggle">
-        <label for="land-advanced-toggle">Advanced: remote targets</label>
-      </div>
-      <div class="land-row">
-        <input type="text" id="land-remote-host" placeholder="or a target host, e.g. app.localhost" aria-label="Target host">
-      </div>
-      <p id="land-remote-warning" class="warn-line" hidden>Writes to a remote jar act as you against that backend.</p>
+        <div class="land-row">
+          <label for="land-route">To jar</label>
+          <select id="land-route">
+            <option value="localhost" selected>localhost</option>
+            <option value="127.0.0.1">127.0.0.1</option>
+            <option value="[::1]">[::1]</option>
+          </select>
+        </div>
 
-      <div class="land-row">
-        <label for="land-mode">Mode</label>
-        <select id="land-mode">
-          <option value="fill-gaps" selected>fill-gaps (add missing only)</option>
-          <option value="merge">merge (upsert)</option>
-          <option value="replace">replace (clear + write)</option>
-          <option value="curated">curated (pick rows)</option>
-        </select>
-      </div>
+        <div class="land-row land-advanced">
+          <input type="checkbox" id="land-advanced-toggle">
+          <label for="land-advanced-toggle">Advanced: remote targets</label>
+        </div>
+        <div class="land-row">
+          <input type="text" id="land-remote-host" placeholder="or a target host, e.g. app.localhost" aria-label="Target host">
+        </div>
+        <p id="land-remote-warning" class="warn-line" hidden>Writes to a remote jar act as you against that backend.</p>
 
-      <button id="land-read" class="secondary full">Read input</button>
+        <div class="land-row">
+          <label for="land-mode">Mode</label>
+          <select id="land-mode">
+            <option value="fill-gaps" selected>fill-gaps (add missing only)</option>
+            <option value="merge">merge (upsert)</option>
+            <option value="replace">replace (clear + write)</option>
+            <option value="curated">curated (pick rows)</option>
+          </select>
+        </div>
+        <p id="land-mode-hint" class="meta"></p>
+
+        <button id="land-read" class="secondary full">Read input</button>
+      </details>
 
       <div id="land-snapshots" hidden>
         <h3>Undo earlier landing</h3>

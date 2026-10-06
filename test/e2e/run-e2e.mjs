@@ -156,6 +156,14 @@ async function main() {
 
     const popup = () => context.newPage().then((p) => p.goto(`chrome-extension://${extensionId}/src/popup/popup.html`).then(() => p));
 
+    // The land power controls (lane/route/mode/advanced/read) live behind a
+    // collapsed disclosure — scenarios that drive them directly open it
+    // first. The quick action needs none of this.
+    const openLandOptions = async (p) => {
+      await p.click('#land-options summary');
+      return p;
+    };
+
     const readClipboard = () => targetPage.evaluate(() => navigator.clipboard.readText());
 
     const fixture = async (id) => JSON.parse(await readFile(join(here, '..', 'fixtures', `${id}.json`), 'utf8'));
@@ -493,6 +501,7 @@ async function main() {
 
         // Land: dock lane (default), localhost route (default), merge mode.
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-mode', 'merge');
         await p.click('#land-read');
         await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
@@ -542,6 +551,59 @@ async function main() {
       }
     }
 
+    // ---- quick land: one click, pinned to the safe path -------------------
+    {
+      const name = 'quick land — pinned dock/localhost/fill-gaps, one click to the diff';
+      let p;
+      try {
+        await context.clearCookies();
+        // The dock still holds the whole-loop grab (sid + __Host-session).
+        // A pre-seeded target row proves the pin: fill-gaps must KEEP it,
+        // where merge (the session pref left by the whole-loop scenario)
+        // would overwrite it.
+        await seedCookies([
+          { name: '__Host-session', value: 'already-here', url: base + '/', secure: true, httpOnly: true, sameSite: 'Lax' },
+        ]);
+        assertEq((await readJar('localhost')).length, 1, 'target jar pre-seeded');
+        p = await popup();
+        // One click — no lane/route/mode choices, no expanding the options.
+        await p.click('#land-quick');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        assertIncludes(await p.evaluate(() => document.getElementById('land-math').textContent), 'adds 1', 'quick diff plans only the missing row');
+        assertIncludes(await p.evaluate(() => document.getElementById('land-math').textContent), '1 already present (kept)', 'the fill-gaps pin keeps the existing row');
+        assertEq(
+          await p.$eval('#copy', (b) => getComputedStyle(b).backgroundColor),
+          'rgba(0, 0, 0, 0)',
+          'copy demotes to secondary while a landing is reviewed',
+        );
+        await p.click('#land-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        assertIncludes(
+          await p.evaluate(() => document.getElementById('land-report-line').textContent),
+          'landed 1/1 — jar-verified',
+          'headline counts the written rows',
+        );
+        const jar = await readJar('localhost');
+        assertEq(jar.length, 2, 'quick land wrote the missing row');
+        assertEq(jar.find((c) => c.name === '__Host-session')?.value, 'already-here', 'the pinned fill-gaps never overwrote the existing row');
+        // Restore the pre-landing jar for the scenarios that follow — the
+        // pre-landing state here is the seeded row, not an empty jar.
+        await p.click('#land-undo');
+        await p.waitForFunction(() => !document.getElementById('land-restore').hidden, null, { timeout: 5000 });
+        await p.click('#land-restore-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        const jarAfterUndo = await readJar('localhost');
+        assertEq(jarAfterUndo.length, 1, 'undo restores the pre-landing jar (the seeded row)');
+        assertEq(jarAfterUndo[0]?.name, '__Host-session', 'undo restores the seeded row, not the landed set');
+        assertEq(jarAfterUndo[0]?.value, 'already-here', 'undo restores the pre-landing value');
+        record(name);
+        await p.close();
+      } catch (err) {
+        await p?.close().catch(() => {});
+        record(name, err);
+      }
+    }
+
     // ---- replace mode: typed-LAND gate, then jar equals incoming set ------
     {
       const name = 'replace gate — confirm disabled until LAND is typed, then jar equals the incoming set';
@@ -567,6 +629,7 @@ async function main() {
         await targetPage.evaluate((t) => navigator.clipboard.writeText(t), incomingJson);
 
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'clipboard');
         await p.selectOption('#land-mode', 'replace');
         await p.click('#land-read');
@@ -609,6 +672,7 @@ async function main() {
           { domain: 'localhost', hostOnly: true, name: 'ta-b', path: '/', sameSite: 'lax', secure: false, session: true, storeId: '0', value: '2' },
         ], null, 2);
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'textarea');
         await p.fill('#land-textarea', pastedJson);
         await p.click('#land-read');
@@ -640,6 +704,7 @@ async function main() {
         // The lane is chosen explicitly: the textarea scenario left
         // lane='textarea' in the session prefs.
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'dock');
         await p.selectOption('#land-mode', 'curated');
         await p.click('#land-read');
@@ -686,6 +751,7 @@ async function main() {
           { name: 'amb2', value: 'v', domain: 'localhost', path: '/' },
         ], null, 2);
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'textarea');
         await p.fill('#land-textarea', ambiguousJson);
         await p.click('#land-read');
@@ -716,6 +782,7 @@ async function main() {
           { domain: 'localhost', hostOnly: true, httpOnly: true, name: 'htest', path: '/', sameSite: 'lax', secure: false, session: true, storeId: '0', value: 'secret' },
         ], null, 2);
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'textarea');
         await p.fill('#land-textarea', httpOnlyJson);
         await p.click('#land-read');
@@ -747,6 +814,7 @@ async function main() {
         await targetPage.evaluate((t) => navigator.clipboard.writeText(t), foreignJson);
 
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'clipboard');
         await p.click('#land-read');
         await p.waitForFunction(
@@ -781,6 +849,7 @@ async function main() {
         await targetPage.evaluate(() => navigator.clipboard.writeText('[]'));
 
         p = await popup();
+        await openLandOptions(p);
         await p.selectOption('#land-lane', 'clipboard');
         await p.selectOption('#land-mode', 'replace');
         await p.click('#land-read');

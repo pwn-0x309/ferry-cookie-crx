@@ -157,11 +157,18 @@ function render() {
   $('source-line').textContent = state.tab?.url ? jarKey(state.tab.url) : '—';
 
   const guardEl = $('guard');
+  const guardHint = $('guard-hint');
   if (state.guard) {
     $('guard-reason').textContent = `Copy disabled — ${state.guard}.`;
+    // A guard states the fact; the hint gives the way out.
+    guardHint.textContent =
+      state.guard.startsWith('error:')
+        ? 'Reopen the popup — if it persists, reload the page and try again.'
+        : 'FerryCookie works on normal http(s) pages — open one and click the icon again.';
     guardEl.hidden = false;
   } else if (zero) {
     $('guard-reason').textContent = `Copy disabled — ${zeroReason(state.raw.length, state.grab.report)}.`;
+    guardHint.textContent = 'Nothing to ferry from this site. Grab from a site you are logged into instead.';
     guardEl.hidden = false;
   } else {
     guardEl.hidden = true;
@@ -170,6 +177,7 @@ function render() {
   const receiptEl = $('receipt');
   if (!state.guard && state.grab && emitted > 0) {
     $('receipt-count').textContent = String(emitted);
+    $('receipt-cookies-label').textContent = emitted === 1 ? 'cookie' : 'cookies';
     $('receipt-time').textContent = timeOf(state.grabbedAt);
     receiptEl.hidden = false;
   } else {
@@ -187,7 +195,7 @@ function renderCred() {
   const el = $('cred-state');
   const clear = $('clear');
   const parts = [];
-  if (state.cred?.holds) parts.push(`Clipboard holds ${state.cred.count} cookies (copied ${timeOf(state.cred.at)}).`);
+  if (state.cred?.holds) parts.push(`Clipboard holds ${state.cred.count} cookie${state.cred.count === 1 ? '' : 's'} (copied ${timeOf(state.cred.at)}).`);
   if (state.cred?.error) parts.push(`Clipboard write failed: ${state.cred.error}`);
   el.textContent = parts.join(' ');
   el.hidden = parts.length === 0;

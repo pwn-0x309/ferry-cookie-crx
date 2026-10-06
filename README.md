@@ -78,7 +78,10 @@ folder.
 Every successful copy also refreshes the **dock** — the session-scoped copy
 of the grab (an FC envelope: the same ETC rows plus `grabbedAt` /
 `sourceOrigin` metadata). The Land flow lives in the popup below the copy
-surface:
+surface, and leads with a **quick action** — *Land last grab → localhost*,
+pinned to dock lane, `localhost`, fill-gaps, no advanced toggle, whatever the
+controls or session prefs say. The controls themselves (steps 1–3) sit behind
+a collapsed *Change source, route, or mode* disclosure:
 
 1. **Pick a lane** — *Dock (last grab)*, *Clipboard* (read at the Read
    click, never at popup-open), or *Paste* (a textarea; needs no clipboard

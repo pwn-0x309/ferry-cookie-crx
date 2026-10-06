@@ -20,11 +20,11 @@ The clipboard carries EditThisCookie-v3 JSON with every host already rewritten t
 
 ## 3 · Land — the guarded write
 
-Open your local dev server (`localhost:8787` in the shots below — any port, they share one jar) and open the popup again. The **Land** section defaults to the common case: dock lane, `localhost` route, fill-gaps mode:
+Open your local dev server (`localhost:8787` in the shots below — any port, they share one jar) and open the popup again. The **Land** section leads with one safe quick action — *Land last grab → localhost*, pinned to add-only fill-gaps — with the lane, route, mode, and remote-target controls tucked behind **Change source, route, or mode**:
 
-![Land setup — lane, route, mode](screenshots/03-land-setup.png)
+![Land — quick action first, power controls collapsed](screenshots/03-land-setup.png)
 
-**Read input** shows the diff screen before anything is written — what lands, what overwrites, what's excluded, and how old the grab is:
+**Read input** (or the quick action) shows the diff screen before anything is written — what lands, what overwrites, what's excluded, and how old the grab is. Fates are color-coded: green ✓ adds, amber ↻ overwrites, and skips get their reason by name:
 
 ![Land diff — pre-flight math, freshness, per-row fate](screenshots/04-land-diff.png)
 
@@ -71,6 +71,7 @@ Pages with nothing to ferry disable the action with the reason instead of a dead
 | Gesture | Where | Posture |
 |---|---|---|
 | Copy | popup / context menu / `Ctrl+Cmd+Shift+9` | one click + visible credential state |
-| Land (fill-gaps, merge, curated) | popup → Read input → Land | one click on the diff |
+| Land (quick) | popup → *Land last grab → localhost* | one click, add-only, reviewed on the diff |
+| Land (fill-gaps, merge, curated) | popup → Change source, route, or mode → Read input → Land | one click on the diff |
 | Land (replace) | popup → mode: replace | type `LAND` |
 | Undo | report screen or snapshot list | diff-then-confirm |
