@@ -213,9 +213,11 @@ export function planLanding(rows, localJar, mode = 'fill-gaps', protect = [], op
   const adds = [];
   const overwrites = [];
   const keptExisting = [];
-  const skippedProtected = [];
+  const skippedProtected = []; // deduped names, for display
+  let skippedProtectedCount = 0; // row-exact, matching skippedForeign's counting
   for (const row of rows) {
     if (protectSet.has(row.name)) {
+      skippedProtectedCount += 1;
       if (!skippedProtected.includes(row.name)) skippedProtected.push(row.name);
       continue;
     }
@@ -245,7 +247,7 @@ export function planLanding(rows, localJar, mode = 'fill-gaps', protect = [], op
     overwrites: overwrites.length,
     removes: removes.length,
     keptExisting: keptExisting.length,
-    excludesProtected: skippedProtected.length,
+    excludesProtected: skippedProtectedCount,
   };
   const projectedJarSize = localJar.length - removes.length + adds.length;
   return {
@@ -256,7 +258,8 @@ export function planLanding(rows, localJar, mode = 'fill-gaps', protect = [], op
     overwrites,
     removes,
     keptExisting,
-    skippedProtected,
+    skippedProtected, // deduped names, display only
+    skippedProtectedCount, // row-exact — counts and skippedForeign agree
     math,
     capacity: {
       projectedJarSize,
@@ -264,6 +267,14 @@ export function planLanding(rows, localJar, mode = 'fill-gaps', protect = [], op
       offer: 'auth-class only',
     },
   };
+}
+
+// Write origin for a target host: loopback writes over http:// (spike-pinned:
+// Chrome accepts Secure and __Host- cookies on http://localhost); anything
+// remote needs https:// — Chrome rejects Secure rows over plain http
+// off-loopback. Pinned by unit test beside the routeGate cases.
+export function originFor(targetHost) {
+  return (isLoopbackHost(targetHost) ? 'http://' : 'https://') + targetHost;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,9 +352,10 @@ export function assembleReport({ plan, jarBefore = [], jarAfter = [], writeError
     overwritten: overwritten.length,
     removed: removed.length,
     // Row count, matching the diff screen's "excludes N foreign" — the
-    // name list below stays deduped for display.
+    // name list below stays deduped for display. skippedProtected counts
+    // rows too (plan.skippedProtectedCount), so the two skip buckets agree.
     skippedForeign: foreign.length,
-    skippedProtected: plan.skippedProtected.length,
+    skippedProtected: plan.skippedProtectedCount ?? plan.skippedProtected.length,
     invalid: invalid.length,
     failed: failed.length,
     keptExisting: plan.keptExisting.length,
@@ -358,8 +370,10 @@ export function assembleReport({ plan, jarBefore = [], jarAfter = [], writeError
     invalid,
     counts,
     duplicatesCollapsed,
-    // Partial success is loudly partial.
-    partial: failed.length > 0 || invalid.length > 0 || foreignNames.length > 0,
+    // Partial success is loudly partial — but by-design skips (foreign,
+    // protected, kept) are complete success with reported exclusions, not
+    // partial failure. Only rows that tried and didn't make it are partial.
+    partial: failed.length > 0 || invalid.length > 0,
     verifiedFrom: 'jar',
   };
 }

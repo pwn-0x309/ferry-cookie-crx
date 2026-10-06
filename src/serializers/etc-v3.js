@@ -64,7 +64,10 @@ export function validateEtcV3Row(raw) {
   if (typeof raw.domain !== 'string' || raw.domain === '') {
     return { reason: 'domain is missing or empty' };
   }
-  if (raw.domain.replace(/^\.+/, '').trim() === '') {
+  // Canonical domain: outer whitespace and leading/trailing dots stripped —
+  // a DNS-style trailing dot ("localhost.") must not turn a ferry-shaped
+  // row into a foreign one downstream.
+  if (raw.domain.trim().replace(/^\.+|\.+$/g, '') === '') {
     return { reason: 'domain is only dots' }; // would normalize to the empty host
   }
   if (raw.path !== undefined && (typeof raw.path !== 'string' || !raw.path.startsWith('/'))) {
@@ -105,7 +108,7 @@ export function validateEtcV3Row(raw) {
     raw.session !== true && typeof raw.expirationDate === 'number' && Number.isFinite(raw.expirationDate);
 
   const row = {
-    domain: raw.domain.replace(/^\.+/, '').toLowerCase(),
+    domain: raw.domain.trim().replace(/^\.+|\.+$/g, '').toLowerCase(),
     hostOnly: hostOnly ?? true, // a missing hostOnly is host-only (v1 semantics)
     name: raw.name,
     path: raw.path ?? '/',

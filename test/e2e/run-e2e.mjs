@@ -395,7 +395,7 @@ async function main() {
         const all = await chrome.cookies.getAll({ domain: h });
         return all
           .filter((c) => String(c.domain).replace(/^\.+/, '').toLowerCase() === h)
-          .map((c) => ({ name: c.name, value: c.value, path: c.path, secure: c.secure, hostOnly: c.hostOnly, domain: c.domain, sameSite: c.sameSite, session: c.session, hasExpiry: typeof c.expirationDate === 'number' }))
+          .map((c) => ({ name: c.name, value: c.value, path: c.path, secure: c.secure, hostOnly: c.hostOnly, domain: c.domain, sameSite: c.sameSite, session: c.session, hasExpiry: typeof c.expirationDate === 'number', httpOnly: c.httpOnly }))
           .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
       }, host);
 
@@ -591,6 +591,113 @@ async function main() {
           'adds 2',
           'the paste lane parses and plans like any other lane',
         );
+        record(name);
+        await p.close();
+      } catch (err) {
+        await p?.close().catch(() => {});
+        record(name, err);
+      }
+    }
+
+    // ---- curated mode: checkbox selection lands exactly the checked rows -
+    {
+      const name = 'curated mode — lands only the checked rows; empty selection refuses';
+      let p;
+      try {
+        await context.clearCookies();
+        await sw.evaluate(async () => {
+          await chrome.storage.session.remove('fc-protect');
+        });
+        // The dock still holds the whole-loop grab (sid + __Host-session),
+        // and the target jar is empty (the whole loop undid its landing).
+        // The lane is chosen explicitly: the textarea scenario left
+        // lane='textarea' in the session prefs.
+        p = await popup();
+        await p.selectOption('#land-lane', 'dock');
+        await p.selectOption('#land-mode', 'curated');
+        await p.click('#land-read');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        const boxes = await p.$$('#land-rows input[type="checkbox"]');
+        assertEq(boxes.length, 2, 'curated offers a checkbox per retargeted row');
+        await boxes[0].uncheck(); // drop sid — only __Host-session may land
+        assertEq(await p.$eval('#land-confirm', (b) => b.disabled), false, 'one checked row arms the curated confirm');
+        await p.click('#land-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        const jar = await readJar('localhost');
+        assertEq(jar.length, 1, 'only the checked row landed');
+        assertEq(jar[0].name, '__Host-session', 'the unchecked row never landed');
+        // Empty selection: every box unchecked refuses with a named reason,
+        // no snapshot taken, jar untouched.
+        await p.click('#land-done');
+        await p.click('#land-read');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        for (const box of await p.$$('#land-rows input[type="checkbox"]')) await box.uncheck();
+        assertEq(await p.$eval('#land-confirm', (b) => b.disabled), true, 'the empty selection disables the confirm');
+        assertIncludes(
+          await p.evaluate(() => document.getElementById('land-reason').textContent),
+          'no rows checked',
+          'the refusal names the cause',
+        );
+        assertEq((await readJar('localhost')).length, 1, 'jar untouched by the refused selection');
+        record(name);
+        await p.close();
+      } catch (err) {
+        await p?.close().catch(() => {});
+        record(name, err);
+      }
+    }
+
+    // ---- ambiguous dialect: the picker asks, never guesses ----------------
+    {
+      const name = 'ambiguous dialect — picker offers both candidates and lands the picked one';
+      let p;
+      try {
+        await context.clearCookies();
+        // Minimal rows fit both the ETC v3 and the Playwright validators.
+        const ambiguousJson = JSON.stringify([
+          { name: 'amb', value: 'v', domain: 'localhost', path: '/' },
+          { name: 'amb2', value: 'v', domain: 'localhost', path: '/' },
+        ], null, 2);
+        p = await popup();
+        await p.selectOption('#land-lane', 'textarea');
+        await p.fill('#land-textarea', ambiguousJson);
+        await p.click('#land-read');
+        await p.waitForFunction(() => !document.getElementById('land-dialect').hidden, null, { timeout: 10000 });
+        const radios = await p.$$('input[name="land-dialect-pick"]');
+        assertEq(radios.length, 2, 'both candidate dialects offered');
+        await radios[1].check(); // pick the Playwright candidate
+        await p.click('#land-dialect-use');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        await p.click('#land-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        assertEq((await readJar('localhost')).length, 2, 'the picked dialect landed its rows');
+        record(name);
+        await p.close();
+      } catch (err) {
+        await p?.close().catch(() => {});
+        record(name, err);
+      }
+    }
+
+    // ---- inbound httpOnly rides verbatim through the writer ---------------
+    {
+      const name = 'inbound httpOnly — a foreign export row lands with its httpOnly flag intact';
+      let p;
+      try {
+        await context.clearCookies();
+        const httpOnlyJson = JSON.stringify([
+          { domain: 'localhost', hostOnly: true, httpOnly: true, name: 'htest', path: '/', sameSite: 'lax', secure: false, session: true, storeId: '0', value: 'secret' },
+        ], null, 2);
+        p = await popup();
+        await p.selectOption('#land-lane', 'textarea');
+        await p.fill('#land-textarea', httpOnlyJson);
+        await p.click('#land-read');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        await p.click('#land-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        const jar = await readJar('localhost');
+        assertEq(jar.length, 1, 'the foreign row landed');
+        assertEq(jar[0].httpOnly, true, 'httpOnly carried verbatim through the writer');
         record(name);
         await p.close();
       } catch (err) {

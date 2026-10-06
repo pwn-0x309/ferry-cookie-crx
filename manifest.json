@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FerryCookie",
   "version": "2.0.0",
-  "description": "Copy the page's cookies as EditThisCookie v3 JSON, every host rewritten to localhost — then Land them back onto a local jar with a guarded diff, report, and undo. Zero egress, no telemetry, nothing persisted.",
+  "description": "Copy a page's cookies for localhost, then Land them back with a guarded diff, report, and undo. Session-only storage, zero egress.",
   "minimum_chrome_version": "109",
   "icons": {
     "16": "icons/icon16.png",
