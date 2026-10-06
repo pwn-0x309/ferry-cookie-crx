@@ -63,8 +63,16 @@ async function refreshGrab() {
     targetOrigin: TARGET_DEFAULT,
     protectedNames: state.protect,
   });
+  // The preview runs on the same grab WITHOUT the protect list: protected
+  // rows must stay visible (checked) or their checkbox — the only way to
+  // un-protect a name — would vanish the moment it is ticked.
+  const unguarded = rewriteGrab(state.raw, {
+    sourceOrigin: state.tab.url,
+    targetOrigin: TARGET_DEFAULT,
+    protectedNames: [],
+  });
   const local = await getLocalJarCookies(TARGET_DEFAULT);
-  state.overlap = previewOverlap(state.grab.cookies, local);
+  state.overlap = previewOverlap(unguarded.cookies, local);
 }
 
 async function onCopy() {

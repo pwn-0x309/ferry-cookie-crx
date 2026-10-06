@@ -379,9 +379,9 @@ async function main() {
         await p.close();
 
         // fc-protect (names only, storage.session) survives the next grab:
-        // the reopened popup still flags the name and still emits only sid
-        // (the protected cookie also drops out of the preview, since the
-        // preview runs on the post-protect grab).
+        // the reopened popup still flags the name and still emits only sid.
+        // The protected row STAYS in the preview, checked — that checkbox is
+        // the only way back out of the protect list, so it must not vanish.
         const p2 = await popup();
         await p2.waitForFunction(
           () =>
@@ -394,6 +394,17 @@ async function main() {
           await p2.evaluate(() => document.getElementById('receipt-count').textContent),
           '1',
           'next grab still excludes the protected cookie',
+        );
+        const keptBox = p2.locator('#preview-list input[data-name="__Host-session"]');
+        await keptBox.waitFor({ state: 'visible', timeout: 5000 });
+        assertEq(await keptBox.isChecked(), true, 'protected row stays in the preview, checked');
+        await keptBox.uncheck({ timeout: 5000 });
+        await p2.waitForFunction(
+          () =>
+            !document.getElementById('flags').textContent.includes('protected, not copied') &&
+            document.getElementById('receipt-count')?.textContent === '2',
+          null,
+          { timeout: 10000 },
         );
         record(name);
         await p2.close();
