@@ -234,7 +234,7 @@ function renderPreview() {
     box.checked = state.protect.includes(row.name);
     box.dataset.name = row.name;
     box.id = `protect-${CSS.escape(row.name)}-${CSS.escape(row.domain)}-${CSS.escape(row.path)}`;
-    box.setAttribute('aria-label', `protect ${row.name} ${row.domain} ${row.path} from being overwritten`);
+    box.setAttribute('aria-label', `protect ${row.name} ${row.domain} ${row.path} from being grabbed`);
 
     const label = document.createElement('label');
     label.htmlFor = box.id;

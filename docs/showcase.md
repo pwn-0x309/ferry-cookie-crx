@@ -8,9 +8,9 @@ The whole loop in screenshots: copy a logged-in site's cookies, land them on `lo
 
 ## 2 · Copy — one gesture on the logged-in site
 
-Open the site you're logged into and click the FerryCookie icon. The popup is a receipt, not a dashboard: source host, cookie count, grab time, and the flags that changed the story (partitioned cookies excluded, duplicates collapsed, broken `SameSite` pairs). The **Would overwrite** list shows which local cookies an import would clobber — tick a checkbox to *protect* a name the ferry must never touch, on either side.
+Open the site you're logged into and click the FerryCookie icon. The popup is a receipt, not a dashboard: source host, cookie count, grab time, and the flags that changed the story (partitioned cookies excluded, duplicates collapsed, broken `SameSite` pairs). The **On localhost too** list shows cookies that also sit on the local jar — tick a checkbox to *protect* the name: the ferry never grabs it, and never lands over it either.
 
-![Copy view — receipt, flags, and the overwrite preview with protect checkboxes](screenshots/01-copy-grab.png)
+![Copy view — receipt, flags, and the protect list](screenshots/01-copy-grab.png)
 
 Click **Copy to clipboard** (or use the right-click menu "Copy cookies as localhost JSON", or `Ctrl/Cmd+Shift+9`). The credential state becomes visible — the clipboard now holds live session data, with a one-tap clear:
 
