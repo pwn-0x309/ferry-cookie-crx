@@ -159,35 +159,96 @@
       }
     ],
     "foreign": [
-      { "name": "toss-seed", "domain": "internal.corp" },
-      { "name": "realworld", "domain": "example.com" }
+      {
+        "name": "toss-seed",
+        "domain": "internal.corp"
+      },
+      {
+        "name": "realworld",
+        "domain": "example.com"
+      }
     ],
     "plan": {
       "adds": [
-        { "name": "sid", "path": "/", "domain": "localhost" },
-        { "name": "from-v4", "path": "/", "domain": "localhost" },
-        { "name": "sub", "path": "/", "domain": "localhost" },
-        { "name": "v6", "path": "/", "domain": "localhost" }
+        {
+          "name": "sid",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "from-v4",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "sub",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "v6",
+          "path": "/",
+          "domain": "localhost"
+        }
       ],
       "overwrites": [],
       "removes": [],
-      "keptExisting": [{ "name": "theme", "path": "/", "domain": "localhost" }],
+      "keptExisting": [
+        {
+          "name": "theme",
+          "path": "/",
+          "domain": "localhost"
+        }
+      ],
       "skippedProtected": [],
-      "writesOrder": ["sid", "from-v4", "sub", "v6"],
-      "math": { "adds": 4, "overwrites": 0, "removes": 0, "keptExisting": 1, "excludesProtected": 0 },
-      "capacity": { "projectedJarSize": 5, "over": false }
+      "writesOrder": [
+        "sid",
+        "from-v4",
+        "sub",
+        "v6"
+      ],
+      "math": {
+        "adds": 4,
+        "overwrites": 0,
+        "removes": 0,
+        "keptExisting": 1,
+        "excludesProtected": 0
+      },
+      "capacity": {
+        "projectedJarSize": 5,
+        "over": false
+      }
     },
     "report": {
       "landed": [
-        { "name": "sid", "path": "/", "domain": "localhost" },
-        { "name": "from-v4", "path": "/", "domain": "localhost" },
-        { "name": "sub", "path": "/", "domain": "localhost" },
-        { "name": "v6", "path": "/", "domain": "localhost" }
+        {
+          "name": "sid",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "from-v4",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "sub",
+          "path": "/",
+          "domain": "localhost"
+        },
+        {
+          "name": "v6",
+          "path": "/",
+          "domain": "localhost"
+        }
       ],
       "overwritten": [],
       "removed": [],
       "failed": [],
-      "foreignNames": ["toss-seed", "realworld"],
+      "foreignNames": [
+        "toss-seed",
+        "realworld"
+      ],
       "counts": {
         "landed": 4,
         "overwritten": 0,
@@ -199,7 +260,7 @@
         "keptExisting": 1,
         "duplicatesCollapsed": 0
       },
-      "partial": true
+      "partial": false
     }
   }
 }

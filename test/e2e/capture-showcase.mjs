@@ -20,16 +20,21 @@ const pageHtml = (title, note) => `<!doctype html><meta charset="utf-8"><title>$
 <h1>${title}</h1><p>${note}</p><pre id="jar"></pre>
 <script>function draw(){const c=document.cookie?document.cookie.split('; ').sort():[];document.getElementById('jar').textContent=c.length?('document.cookie — '+c.length+' visible:\\n'+c.join('\\n')):'document.cookie — (empty: no cookies readable from JS)';}draw();addEventListener('focus',draw);</script>`;
 
-const serve = (port, html) => new Promise((r) => http.createServer((q, s) => { s.setHeader('content-type', 'text/html'); s.end(html); }).listen(port, '127.0.0.1', r));
-
 const ctx = await chromium.launchPersistentContext(profile, {
   headless: false,
   viewport: { width: 1000, height: 700 },
   args: [`--disable-extensions-except=${extDir}`, `--load-extension=${extDir}`, '--no-first-run'],
 });
+const servers = [];
+const serve = (host, port, html) =>
+  new Promise((r) => {
+    const s = http.createServer((q, res) => { res.setHeader('content-type', 'text/html'); res.end(html); });
+    servers.push(s);
+    s.listen(port, host, r);
+  });
 try {
-  await serve(8788, pageHtml('acme.example — production stand-in (127.0.0.1:8788)', 'Logged in as <strong>jinsoon</strong>. The browser jar holds 4 cookies here: <code>session</code> (httpOnly+Secure), <code>theme</code>, <code>cart_id</code>, and a partitioned tracker.'));
-  await serve(8787, pageHtml('localhost:8787 — local dev server', 'The local app. <code>document.cookie</code> below fills in after <strong>Land</strong>, and empties again after <strong>Undo</strong>.'));
+  await serve('127.0.0.1', 8788, pageHtml('acme.example — production stand-in (127.0.0.1:8788)', 'Logged in as <strong>jinsoon</strong>. The browser jar holds 4 cookies here: <code>session</code> (httpOnly+Secure), <code>theme</code>, <code>cart_id</code>, and a partitioned tracker.'));
+  await serve('127.0.0.1', 8787, pageHtml('localhost:8787 — local dev server', 'The local app. <code>document.cookie</code> below fills in after <strong>Land</strong>, and empties again after <strong>Undo</strong>.'));
   const sw = ctx.serviceWorkers()[0] ?? (await new Promise((r) => ctx.on('serviceworker', r)));
   await sw.evaluate(async () => { await chrome.storage.session.clear(); });
   const extensionId = new URL(sw.url()).host;
@@ -151,8 +156,7 @@ try {
   // guard never manifests here — Chrome hides chrome:// URLs from extensions
   // without "tabs", so the popup falls back to the last regular page)
   await p.close();
-  const serveHost = (host, port, html) => new Promise((r) => http.createServer((q, s) => { s.setHeader('content-type', 'text/html'); s.end(html); }).listen(port, host, r));
-  await serveHost('::1', 8790, pageHtml('fresh-site.example — not logged in ([::1]:8790)', 'No cookies here at all ([::1] is its own jar). Opening the popup shows the named disable instead of a dead button.'));
+  await serve('::1', 8790, pageHtml('fresh-site.example — not logged in ([::1]:8790)', 'No cookies here at all ([::1] is its own jar). Opening the popup shows the named disable instead of a dead button.'));
   const emptyPage = await ctx.newPage();
   await emptyPage.goto('http://[::1]:8790/');
   await emptyPage.bringToFront();
@@ -165,6 +169,9 @@ try {
 
   console.log('captured: 01..11 in ' + outDir);
 } finally {
+  // Close every server — an open listen socket would keep the event loop
+  // alive and hang the run after "captured".
+  for (const s of servers) s.close();
   await ctx.close().catch(() => {});
   try { rmSync(profile, { recursive: true, force: true }); } catch {}
 }

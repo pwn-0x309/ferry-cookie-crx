@@ -76,7 +76,7 @@ async function handleGesture(tab) {
       try {
         await writeDock(cookies, {
           grabbedAt: receipt.grabbedAt,
-          sourceOrigin: tab.url,
+          sourceOrigin: new URL(tab.url).origin, // an origin, not the full URL
           partitionMap: { excluded: report.partitionedExcluded },
         });
       } catch {

@@ -39,6 +39,9 @@ function parseUrlForm(raw, { sameSite, secure, httpOnly, session }) {
   } catch {
     return { reason: `url "${raw.url}" is not parseable` };
   }
+  if (!url.hostname) {
+    return { reason: `url "${raw.url}" has no host` }; // e.g. file:///x — not a cookieable origin
+  }
   if (raw.path !== undefined && (typeof raw.path !== 'string' || !raw.path.startsWith('/'))) {
     return { reason: 'path does not start with "/"' };
   }
@@ -104,8 +107,11 @@ function validatePlaywrightRow(raw) {
     return { reason: 'domain is missing or empty' };
   }
 
-  const domain = raw.domain.replace(/^\.+/, '').toLowerCase();
-  const hostOnly = !raw.domain.startsWith('.');
+  // Canonical domain: outer whitespace and leading/trailing dots stripped
+  // (same rule as the ETC validator), keeping hostOnly derivable from the
+  // ORIGINAL dot form.
+  const domain = raw.domain.trim().replace(/^\.+|\.+$/g, '').toLowerCase();
+  const hostOnly = !raw.domain.trim().startsWith('.');
   const row = {
     domain,
     hostOnly,

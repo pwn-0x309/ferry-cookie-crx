@@ -84,6 +84,19 @@ describe('ETC v3 inbound (real EditThisCookie exports)', () => {
     }
   });
 
+  it('normalizes trailing dots and outer whitespace in domains (a DNS-style "localhost." stays ferry-shaped)', () => {
+    for (const domain of ['localhost.', '.localhost.', ' localhost', 'localhost ']) {
+      const { row } = validateEtcV3Row({ domain, name: 'a', value: 'v' });
+      assert.equal(row.domain, 'localhost', JSON.stringify(domain));
+    }
+  });
+
+  it('rejects a Playwright url-form row whose URL has no host (file:///x)', () => {
+    const { invalid } = playwright.parse([{ name: 'a', value: 'v', url: 'file:///x' }]);
+    assert.equal(invalid.length, 1);
+    assert.match(invalid[0].reason, /has no host/);
+  });
+
   it('an array with one good and one bad row keeps the good one and reports the bad index', () => {
     const { rows, invalid } = etcV3.parse([
       { domain: 'localhost', name: 'good', value: 'v' },

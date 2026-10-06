@@ -6,7 +6,7 @@
 // write call over the jar).
 
 import { jarEntryKey, jarKey } from '../core/rewrite.js';
-import { assembleReport, evictSnapshots, isLoopbackHost, planLanding, recomputeRemoves } from '../core/landing.js';
+import { assembleReport, evictSnapshots, originFor, planLanding, recomputeRemoves } from '../core/landing.js';
 import { envelope } from '../serializers/envelope.js';
 import { getLocalJarCookies } from './grab.js';
 
@@ -14,12 +14,10 @@ export const DOCK_KEY = 'fc-dock';
 export const SNAPSHOTS_KEY = 'fc-snapshots';
 export const MAX_SNAPSHOTS = 3;
 
-// Loopback targets write over http:// (spike-pinned: Chrome accepts Secure
-// and __Host- cookies on http://localhost). Remote advanced targets need
-// https:// — Chrome rejects Secure rows over plain http off-loopback.
-function originOf(targetHost) {
-  return (isLoopbackHost(targetHost) ? 'http://' : 'https://') + targetHost;
-}
+// Write origin comes from the pure core (originFor): loopback over http://
+// (spike-pinned — Chrome accepts Secure and __Host- on http://localhost),
+// remote targets over https:// — Chrome rejects Secure rows over plain http
+// off-loopback. Unit-pinned beside the routeGate cases.
 
 // ---------------------------------------------------------------------------
 // Lanes
@@ -54,7 +52,7 @@ export async function readClipboard() {
 // intent via an explicit `domain` key — never a mix.
 export async function writeCookie(row, targetHost) {
   const details = {
-    url: originOf(targetHost) + row.path,
+    url: originFor(targetHost) + row.path,
     name: row.name,
     value: row.value,
     path: row.path,
@@ -79,7 +77,7 @@ export async function writeCookie(row, targetHost) {
 
 async function removeCookie(ref, targetHost) {
   try {
-    await chrome.cookies.remove({ url: originOf(targetHost) + ref.path, name: ref.name });
+    await chrome.cookies.remove({ url: originFor(targetHost) + ref.path, name: ref.name });
     return null;
   } catch (err) {
     return String(err?.message ?? err);
@@ -95,20 +93,24 @@ export async function listSnapshots() {
   return Array.isArray(stored[SNAPSHOTS_KEY]) ? stored[SNAPSHOTS_KEY] : [];
 }
 
+let snapshotSeq = 0;
+
 export async function saveSnapshot(targetHost, jar, label) {
   const list = await listSnapshots();
-  const next = evictSnapshots([
-    ...list,
-    {
-      id: 'snap-' + jar.length + '-' + Date.now(),
-      at: Date.now(),
-      label,
-      targetHost,
-      jar,
-    },
-  ]);
+  const snap = {
+    id: 'snap-' + jar.length + '-' + Date.now() + '-' + ++snapshotSeq,
+    at: Date.now(),
+    label,
+    targetHost,
+    jar,
+  };
+  const next = evictSnapshots([...list, snap]);
   await chrome.storage.session.set({ [SNAPSHOTS_KEY]: next });
-  return next[0];
+  // Return the object just saved — never next[0]. evictSnapshots sorts by
+  // `at`, and a backward clock jump (or a same-millisecond tie) would make
+  // the newest entry sort away from the front, pointing the caller's undo
+  // at an older jar than the one just snapshotted.
+  return snap;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,32 +120,61 @@ export async function saveSnapshot(targetHost, jar, label) {
 // executeLanding runs the confirmed plan against the target jar:
 //   1. read the jar (the caller may pass its pre-read jarBefore so the
 //      snapshot and the report baseline cannot diverge),
-//   2. removes recomputed from that FRESH jar (a cookie added between the
-//      diff screen and the confirm must not survive a replace that promised
-//      "removes N"), then writes in the plan's specificity order,
-//   3. re-read the jar and assemble the report from the jars, not the calls.
-//      If that re-read itself fails, degrade honestly: the writes have
-//      already happened, so the report says writes-issued / could-not-verify
+//   2. RE-DERIVE the plan against that fresh jar (pass `rows` for
+//      non-replace modes): a cookie arriving between the diff screen and
+//      the confirm must not be destroyed by fill-gaps or surprise-
+//      overwritten by merge — the plan the user confirmed was computed
+//      from a jar that may already be stale; replace recomputes its
+//      removes against the fresh read (recomputeRemoves),
+//   3. rows expiring before they can be used are refused by name — never
+//      written to evaporate into the generic jar-miss message,
+//   4. writes run in the plan's specificity order, then the jar is re-read
+//      and the report is assembled from the jars, not the calls. If that
+//      re-read itself fails, degrade honestly: the writes have already
+//      happened, so the report says writes-issued / could-not-verify
 //      instead of a plain "landing failed".
-export async function executeLanding({ plan, targetHost, foreign = [], invalid = [], duplicatesCollapsed = 0, label = '', jarBefore = null }) {
-  const before = jarBefore ?? (await getLocalJarCookies(originOf(targetHost)));
+export async function executeLanding({ plan, rows = null, targetHost, foreign = [], invalid = [], duplicatesCollapsed = 0, label = '', jarBefore = null }) {
+  const before = jarBefore ?? (await getLocalJarCookies(originFor(targetHost)));
 
-  const removes = recomputeRemoves(plan, before);
+  let effective = plan;
+  if (rows && plan.mode !== 'replace') {
+    effective = planLanding(rows, before, plan.mode, plan.protect ?? []);
+    if (plan.mode === 'curated') {
+      // Curated's protected exclusions happened at diff time (locked rows
+      // are never offered as checkboxes), so the refreshed plan — built
+      // from the checked subset — carries the diff-time truth over.
+      effective.skippedProtected = plan.skippedProtected ?? [];
+      effective.skippedProtectedCount = plan.skippedProtectedCount ?? 0;
+    }
+  }
+
+  const nowSec = Date.now() / 1000;
+  const expired = new Set(
+    (effective.writes ?? [])
+      .filter((row) => row.session !== true && typeof row.expirationDate === 'number' && row.expirationDate < nowSec)
+      .map(jarEntryKey),
+  );
+
+  const removes = recomputeRemoves(effective, before);
   const writeErrors = new Map();
   const removeErrors = new Map();
+  for (const key of expired) {
+    writeErrors.set(key, 'cookie is already expired (not written)');
+  }
 
   for (const ref of removes) {
     const error = await removeCookie(ref, targetHost);
     if (error) removeErrors.set(jarEntryKey(ref), error);
   }
-  for (const row of plan.writes) {
+  for (const row of effective.writes) {
+    if (expired.has(jarEntryKey(row))) continue;
     const error = await writeCookie(row, targetHost);
     if (error) writeErrors.set(jarEntryKey(row), error);
   }
 
   let jarAfter;
   try {
-    jarAfter = await getLocalJarCookies(originOf(targetHost));
+    jarAfter = await getLocalJarCookies(originFor(targetHost));
   } catch (err) {
     return {
       report: {
@@ -159,7 +190,7 @@ export async function executeLanding({ plan, targetHost, foreign = [], invalid =
           overwritten: 0,
           removed: 0,
           skippedForeign: foreign.length,
-          skippedProtected: (plan.skippedProtected ?? []).length,
+          skippedProtected: plan.skippedProtectedCount ?? (plan.skippedProtected ?? []).length,
           invalid: invalid.length,
           failed: 0,
           keptExisting: (plan.keptExisting ?? []).length,
@@ -178,7 +209,7 @@ export async function executeLanding({ plan, targetHost, foreign = [], invalid =
   }
 
   const report = assembleReport({
-    plan: { ...plan, removes },
+    plan: { ...effective, removes },
     jarBefore: before,
     jarAfter,
     writeErrors,
@@ -191,12 +222,16 @@ export async function executeLanding({ plan, targetHost, foreign = [], invalid =
 }
 
 // With-snapshot wrapper: what the popup's confirmed Land click runs.
-export async function landWithSnapshot({ plan, targetHost, foreign, invalid, duplicatesCollapsed = 0, label }) {
-  // One read feeds both the snapshot and the report baseline.
-  const jarBefore = await getLocalJarCookies(originOf(targetHost));
+// `rows` are the rows the plan was built from (pipeline rows, or the
+// curated selection) — executeLanding re-derives the plan against the
+// fresh jar read here, closing the diff→confirm staleness window.
+export async function landWithSnapshot({ plan, rows = null, targetHost, foreign, invalid, duplicatesCollapsed = 0, label }) {
+  // One read feeds the snapshot, the re-plan, and the report baseline.
+  const jarBefore = await getLocalJarCookies(originFor(targetHost));
   const snapshot = await saveSnapshot(targetHost, jarBefore, label || `before landing → ${targetHost}`);
   const { report, jarAfter } = await executeLanding({
     plan,
+    rows,
     targetHost,
     foreign,
     invalid,
@@ -219,7 +254,7 @@ export function planRestore(snapshot, currentJar) {
 }
 
 export async function restoreSnapshot(snapshot) {
-  const currentJar = await getLocalJarCookies(originOf(snapshot.targetHost));
+  const currentJar = await getLocalJarCookies(originFor(snapshot.targetHost));
   // Restores are landings too — snapshot the current jar first, so a
   // restore is itself reversible within the session (guarded, one click).
   const preRestore = await saveSnapshot(
@@ -228,7 +263,9 @@ export async function restoreSnapshot(snapshot) {
     `before restore — ${snapshot.label}`,
   );
   const plan = planRestore(snapshot, currentJar);
-  const { report } = await executeLanding({ plan, targetHost: snapshot.targetHost, label: 'restore' });
+  // The fresh read is both the restore's execution baseline and its report
+  // baseline — no second read between plan and execution.
+  const { report } = await executeLanding({ plan, targetHost: snapshot.targetHost, label: 'restore', jarBefore: currentJar });
   return { report, snapshot: preRestore };
 }
 

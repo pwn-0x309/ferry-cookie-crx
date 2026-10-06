@@ -16,6 +16,8 @@ import {
   JAR_CAPACITY,
   authClassRows,
   freshnessLine,
+  isLoopbackHost,
+  originFor,
   planLanding,
   retargetRows,
   routeGate,
@@ -50,6 +52,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     plan: null,
     localJar: null,
     report: null,
+    reportKind: null, // 'landing' | 'restore' — the report headline follows it
     undoSnapshot: null,
     restoreTarget: null,
     authFiltered: false,
@@ -88,7 +91,8 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       if (typeof prefs.mode === 'string' && modes.includes(prefs.mode)) $('land-mode').value = prefs.mode;
       if (typeof prefs.advanced === 'boolean') $('land-advanced-toggle').checked = prefs.advanced;
       $('land-textarea-row').hidden = $('land-lane').value !== 'textarea';
-      $('land-remote-row').hidden = !$('land-advanced-toggle').checked;
+      // The typed-host row is always visible (loopback typed hosts are
+      // default-writable); only the acts-as-you warning follows the toggle.
       $('land-remote-warning').hidden = !$('land-advanced-toggle').checked;
     } catch {
       // prefs are a convenience; never block the flow on them
@@ -123,8 +127,14 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   }
 
   function targetHostOf() {
-    const remote = $('land-remote-host').value.trim();
-    if ($('land-advanced-toggle').checked && remote !== '') return remote.toLowerCase();
+    // A typed host is honored when it is loopback-shaped (*.localhost is a
+    // policy-default target — no toggle owed) or when the advanced toggle
+    // is on; routeGate stays the single gatekeeper either way.
+    const typed = $('land-remote-host').value.trim().toLowerCase();
+    if (typed !== '') {
+      if (isLoopbackHost(typed)) return typed;
+      if ($('land-advanced-toggle').checked) return typed;
+    }
     return $('land-route').value;
   }
 
@@ -227,7 +237,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     }
     let localJar;
     try {
-      localJar = await getLocalJarCookies('http://' + targetHost);
+      localJar = await getLocalJarCookies(originFor(targetHost));
     } catch (err) {
       reason('cannot read the target jar: ' + (err?.message ?? String(err)));
       return;
@@ -268,7 +278,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     if (pipeline.filtered.length) parts.push(`${pipeline.filtered.length} filtered (auth-class)`);
     if (plan.skippedProtected.length) parts.push(`excludes ${plan.skippedProtected.length} protected`);
     if (pipeline.invalid.length) parts.push(`${pipeline.invalid.length} invalid`);
-    if (pipeline.duplicatesCollapsed > 0) parts.push(`${pipeline.duplicatesCollapsed} duplicate collapsed (last write wins)`);
+    if (pipeline.duplicatesCollapsed > 0) parts.push(`${pipeline.duplicatesCollapsed} duplicate${pipeline.duplicatesCollapsed === 1 ? '' : 's'} collapsed (last write wins)`);
     if (curatedCount !== null) parts.push(`${curatedCount} of ${pipeline.rows.length} rows checked`);
     return parts.join(', ');
   }
@@ -424,7 +434,15 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     }
     confirm.disabled = plan.writes.length === 0;
     if (confirm.disabled && land.view === 'diff') {
-      reason('nothing to write — every row is already present (fill-gaps keeps them)');
+      // Name the actual cause — zero writes can come from kept rows,
+      // protected rows, or invalid rows, not only "already present".
+      if (plan.keptExisting.length) {
+        reason('nothing to write — every row is already present (fill-gaps keeps them)');
+      } else if (plan.skippedProtectedCount) {
+        reason('nothing to write — every row is protected (skipped, never written)');
+      } else {
+        reason('nothing to write — no rows survived validation');
+      }
     } else {
       reason('');
     }
@@ -437,6 +455,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   async function onConfirm() {
     const { targetHost, foreign, filtered, invalid, protect, duplicatesCollapsed } = land.pipeline;
     let plan = land.plan;
+    let rows = land.pipeline.rows; // the rows the executed plan must be re-derived from
     if (plan.mode === 'curated') {
       const checkedKeys = new Set(
         [...document.querySelectorAll('#land-rows input[type="checkbox"]')]
@@ -456,12 +475,14 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
         return;
       }
       land.plan = plan;
+      rows = selected;
     }
 
     const label = `${plan.mode} → ${targetHost} (adds ${plan.math.adds}, overwrites ${plan.math.overwrites}${plan.mode === 'replace' ? ', removes ' + plan.math.removes : ''})`;
     try {
       const result = await landWithSnapshot({
         plan,
+        rows,
         targetHost,
         foreign,
         invalid,
@@ -469,6 +490,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
         label: `${label} — ${new Date().toLocaleTimeString()}`,
       });
       land.report = result.report;
+      land.reportKind = 'landing';
       land.undoSnapshot = result.snapshot;
       renderReport(result.report);
       show('report');
@@ -485,8 +507,12 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       // The writes already happened; the verify re-read itself failed. Say
       // so instead of a plain "landing failed".
       line.textContent = `issued ${report.issued} writes — could not verify the jar (${report.verifyError})`;
+    } else if (land.reportKind === 'restore') {
+      // A restore's action is the rebuild, not "landed N/M" — its headline
+      // says so (removals are the bulk of a restore, not a footnote).
+      line.textContent = `restored ${c.landed + c.overwritten + c.removed} — jar-verified` + (report.partial ? ' — PARTIAL: some rows did not make it' : '');
     } else {
-      line.textContent = `landed ${c.landed}/${attempted} — jar-verified` + (report.partial ? ' — PARTIAL: every row is not landed' : '');
+      line.textContent = `landed ${c.landed}/${attempted} — jar-verified` + (report.partial ? ' — PARTIAL: some rows did not make it' : '');
     }
     line.classList.toggle('partial', report.partial || Boolean(report.unverified));
 
@@ -498,12 +524,20 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     if (c.overwritten) lines.push(`overwritten: ${report.overwritten.map((r) => r.name).join(', ')}`);
     if (c.removed) lines.push(`removed: ${report.removed.map((r) => r.name).join(', ')}`);
     if (c.skippedForeign) lines.push(`skipped-foreign (never written): ${report.foreignNames.join(', ')}`);
-    if (c.skippedProtected) lines.push(`skipped-protected: ${land.plan.skippedProtected.join(', ')}`);
+    // Guarded reads: a restore's report must never quote the previous
+    // landing's pipeline/plan state (onRestoreConfirm clears both, and the
+    // guards keep a cleared state from throwing here).
+    if (c.skippedProtected && land.plan?.skippedProtected?.length) {
+      lines.push(`skipped-protected: ${land.plan.skippedProtected.join(', ')}`);
+    }
+    if (c.skippedProtected && land.reportKind === 'restore') {
+      lines.push('skipped-protected: none — a restore rebuilds the whole snapshot jar');
+    }
     if (land.pipeline?.filtered.length) {
       lines.push(`filtered out (auth-class), not written: ${land.pipeline.filtered.map((r) => r.name).join(', ')}`);
     }
     if (c.keptExisting) lines.push(`already present, kept: ${c.keptExisting}`);
-    if (c.duplicatesCollapsed) lines.push(`${c.duplicatesCollapsed} duplicate collapsed (last write wins)`);
+    if (c.duplicatesCollapsed) lines.push(`${c.duplicatesCollapsed} duplicate${c.duplicatesCollapsed === 1 ? '' : 's'} collapsed (last write wins)`);
     if (c.invalid) lines.push(`invalid: ${report.invalid.map((e) => `#${e.index + 1} (${e.reason})`).join('; ')}`);
     if (c.failed) lines.push(`failed: ${report.failed.map((f) => `${f.name} — ${f.reason}`).join('; ')}`);
     for (const text of lines) {
@@ -533,7 +567,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     land.restoreTarget = snapshot;
     let currentJar;
     try {
-      currentJar = await getLocalJarCookies('http://' + snapshot.targetHost);
+      currentJar = await getLocalJarCookies(originFor(snapshot.targetHost));
     } catch (err) {
       reason('cannot read the current jar: ' + (err?.message ?? String(err)));
       return;
@@ -557,7 +591,12 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
     try {
       const result = await restoreSnapshot(land.restoreTarget);
       land.report = result.report;
+      land.reportKind = 'restore';
       land.undoSnapshot = result.snapshot; // the restore is itself reversible
+      // The restore's report must not quote the previous landing's pipeline
+      // or plan — clear them before rendering (renderReport guards both).
+      land.pipeline = null;
+      land.plan = null;
       renderReport(result.report);
       show('report');
     } catch (err) {
@@ -614,10 +653,10 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   $('land-mode').addEventListener('change', savePrefs);
   $('land-advanced-toggle').addEventListener('change', () => {
     const on = $('land-advanced-toggle').checked;
-    $('land-remote-row').hidden = !on;
     $('land-remote-warning').hidden = !on;
     if (!on) $('land-remote-host').value = '';
     savePrefs();
+    renderSnapshotList(); // the Restore buttons' gate follows the toggle live
   });
   $('land-read').addEventListener('click', () => guarded(onReadInput));
   $('land-dialect-use').addEventListener('click', () => guarded(onDialectPick));
@@ -643,9 +682,11 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   $('land-restore-confirm').addEventListener('click', () => guarded(onRestoreConfirm));
   $('land-restore-cancel').addEventListener('click', () => show('setup'));
 
-  // Keyboard: Enter confirms, Esc aborts (landing-policy).
+  // Keyboard: Enter confirms, Esc aborts (landing-policy) — but never while
+  // a landing is in flight: aborting mid-write would hide the landing that
+  // still completes, and the user would believe it was cancelled.
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && land.view !== 'setup') {
+    if (event.key === 'Escape' && !land.busy && land.view !== 'setup') {
       event.preventDefault();
       reason('');
       show('setup');

@@ -84,11 +84,11 @@ async function onCopy() {
   // copy that already reached the clipboard.
   if (state.cred.holds) {
     try {
-      await writeDock(state.grab.cookies, {
-        grabbedAt: state.grabbedAt,
-        sourceOrigin: state.tab.url,
-        partitionMap: { excluded: state.grab.report.partitionedExcluded },
-      });
+        await writeDock(state.grab.cookies, {
+          grabbedAt: state.grabbedAt,
+          sourceOrigin: new URL(state.tab.url).origin, // an origin, not the full URL
+          partitionMap: { excluded: state.grab.report.partitionedExcluded },
+        });
     } catch {
       // the dock lane just won't hold this grab; the copy stands
     }

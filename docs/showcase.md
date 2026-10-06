@@ -20,7 +20,7 @@ The clipboard carries EditThisCookie-v3 JSON with every host already rewritten t
 
 ## 3 · Land — the guarded write
 
-Open your local dev server (`http://localhost:3000` — ports share one jar) and open the popup again. The **Land** section defaults to the common case: dock lane, `localhost` route, fill-gaps mode:
+Open your local dev server (`localhost:8787` in the shots below — any port, they share one jar) and open the popup again. The **Land** section defaults to the common case: dock lane, `localhost` route, fill-gaps mode:
 
 ![Land setup — lane, route, mode](screenshots/03-land-setup.png)
 
@@ -70,7 +70,7 @@ Pages with nothing to ferry disable the action with the reason instead of a dead
 
 | Gesture | Where | Posture |
 |---|---|---|
-| Copy | popup / context menu / `Ctrl+Cmd+9` | one click + visible credential state |
+| Copy | popup / context menu / `Ctrl+Cmd+Shift+9` | one click + visible credential state |
 | Land (fill-gaps, merge, curated) | popup → Read input → Land | one click on the diff |
 | Land (replace) | popup → mode: replace | type `LAND` |
 | Undo | report screen or snapshot list | diff-then-confirm |

@@ -17,6 +17,7 @@ import {
   freshnessLine,
   isAuthClassName,
   isLoopbackHost,
+  originFor,
   planLanding,
   recomputeRemoves,
   retargetRows,
@@ -448,5 +449,19 @@ describe('auth-class capacity filter', () => {
     for (const name of ['theme', 'csrf', 'tracker-x', 'considered']) {
       assert.ok(!isAuthClassName(name), name);
     }
+  });
+});
+
+describe('originFor — the write-scheme rule remote Secure rows depend on', () => {
+  it('loopback targets write over http:// (spike-pinned: Secure and __Host- work there)', () => {
+    for (const host of ['localhost', '127.0.0.1', '[::1]', 'app.localhost']) {
+      assert.match(originFor(host), /^http:\/\//, host);
+    }
+    assert.equal(originFor('localhost'), 'http://localhost');
+  });
+
+  it('remote targets write over https:// — Chrome rejects Secure rows over plain http off-loopback', () => {
+    assert.equal(originFor('staging.internal'), 'https://staging.internal');
+    assert.equal(originFor('app.example.com'), 'https://app.example.com');
   });
 });
