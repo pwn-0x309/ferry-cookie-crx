@@ -346,12 +346,17 @@ Manual check: on a real logged-in site, copy → open the popup → Land (dock
 lane) → your dev server's request headers carry the session cookies →
 Undo puts the jar back.
 
-## Deferred
+## Roadmap
 
-File-import lane (snapshot `.json` import), inbound `Cookie`-header /
-`cookies.txt` parsing, outbound `curl` / `cookies.txt` dialects, keyboard
-land shortcut, cross-profile routes, settings page. These are non-goals by
-design — kept out on purpose, not missing.
+Deferred by design — kept out on purpose, not missing. Treated as the
+product roadmap; checked off as they ship:
+
+- [ ] File-import lane (snapshot `.json` import)
+- [ ] Inbound `Cookie`-header / `cookies.txt` parsing
+- [ ] Outbound `curl` / `cookies.txt` dialects
+- [ ] Keyboard land shortcut
+- [ ] Cross-profile routes
+- [ ] Settings page
 
 ## Support
 
