@@ -80,7 +80,7 @@ On `localhost`, the same popup becomes the destination — one button, the pinne
 
 ![Fast mode on localhost — Land the transformed cookies here](screenshots/14-fast-land.png)
 
-The diff's confirm row appears where that button was — **Land here & Reload** finishes the loop: land, verify, and the page behind the popup refreshes with the session live. Two clicks, no mouse travel.
+The diff's confirm row appears where that button was — **Land here & Reload** finishes the loop: land, verify, and the page behind the popup refreshes with the session live. Two clicks, no mouse travel. Beside the Land button, **Reset** clears the ferry itself (docked grab, credential state, clipboard) when you want to start over — it never touches the protect list, the undo snapshots, or the landed jar.
 
 Everything else — receipt, flags, protect list, the full land controls — waits behind the **Details** disclosure, closed by default. Fast mode removes clicks before the write, never the review of the write.
 

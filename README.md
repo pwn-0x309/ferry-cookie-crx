@@ -88,6 +88,10 @@ are on:
   appears at the same spot: **Land here & Reload** finishes the loop with a
   refreshed page in two clicks, no mouse travel. Fast mode removes clicks
   *before* the write, never the review of the write.
+- **Reset** (beside the Land button): clears the ferry itself — the docked
+  grab, the credential state, and the clipboard — for one-click session
+  hygiene. It never touches the protect list (a standing protection), the
+  undo snapshots, or the landed jar.
 - Everything else — receipt, flags, protect list, the full land controls —
   folds into a **Details** disclosure, closed by default.
 

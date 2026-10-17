@@ -73,6 +73,7 @@ function wireEvents() {
   $('fast-toggle').addEventListener('change', onFastToggle);
   $('fast-grab').addEventListener('click', onCopy); // the same grab gesture, one-button surface
   $('fast-land').addEventListener('click', onFastLand);
+  $('fast-reset').addEventListener('click', onFastReset);
 }
 
 async function refreshGrab() {
@@ -199,6 +200,29 @@ function onFastLand() {
   landFlowApi.quickLandTo(jarKey(state.tab.url)); // pinned: dock, fill-gaps, this host
 }
 
+// Reset clears the ferry itself: the docked grab, the credential state,
+// the fast result, and (best-effort) the clipboard. It never touches the
+// protect list — a standing protection — nor the undo snapshots.
+async function onFastReset() {
+  const note = $('land-reason');
+  try {
+    await chrome.storage.session.remove('fc-dock');
+    await chrome.storage.session.remove('fc-cred');
+    state.cred = null;
+    state.fastGrab = null;
+    try {
+      await navigator.clipboard.writeText(''); // same one-tap clear as full mode
+    } catch {
+      // the dock is the deed; a refused clipboard clear must not undo it
+    }
+    note.textContent = 'ferry reset — dock and clipboard cleared';
+  } catch (err) {
+    note.textContent = 'reset failed: ' + (err?.message ?? String(err));
+  }
+  note.hidden = false;
+  render();
+}
+
 function timeOf(ts) {
   return ts ? new Date(ts).toLocaleTimeString() : '';
 }
@@ -254,6 +278,7 @@ function renderFast(emitted) {
   $('fast-view').hidden = false;
   $('fast-grab').hidden = dest;
   $('fast-land').hidden = !dest;
+  $('fast-land-row').hidden = !dest;
   $('fast-land-meta').hidden = !dest;
   $('fast-grab').disabled = Boolean(state.guard) || emitted === 0; // same gate as Copy
 

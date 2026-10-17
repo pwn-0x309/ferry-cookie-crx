@@ -923,8 +923,20 @@ async function main() {
         const jar = await readJar('localhost');
         assertEq(jar.length, 1, 'fast land wrote the grabbed row');
         assertEq(jar[0]?.value, 'fast-v1');
-        // Leaving fast mode restores the full surface.
+        // Reset: clears the docked ferry, never the landed jar.
         await p.click('#land-done');
+        await p.click('#fast-reset');
+        await p.waitForFunction(
+          () =>
+            !document.getElementById('land-reason').hidden &&
+            document.getElementById('land-reason').textContent.includes('reset'),
+          null,
+          { timeout: 5000 },
+        );
+        const dockAfterReset = await sw.evaluate(async () => (await chrome.storage.session.get('fc-dock'))['fc-dock']);
+        assertEq(dockAfterReset, undefined, 'reset cleared the dock');
+        assertEq((await readJar('localhost')).length, 1, 'reset never touches the landed jar');
+        // Leaving fast mode restores the full surface.
         await p.uncheck('#fast-toggle');
         assertEq(await p.isVisible('#copy'), true, 'the full surface returns when fast mode is off');
         record(name);
