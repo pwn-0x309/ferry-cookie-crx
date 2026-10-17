@@ -352,3 +352,13 @@ File-import lane (snapshot `.json` import), inbound `Cookie`-header /
 `cookies.txt` parsing, outbound `curl` / `cookies.txt` dialects, keyboard
 land shortcut, cross-profile routes, settings page. These are non-goals by
 design — kept out on purpose, not missing.
+
+## Support
+
+If FerryCookie saves you clicks, you can buy apollo.dev a coffee:
+
+<p align="center">
+  <a href="https://buymeacoffee.com/apollo.dev">
+    <img src="docs/assets/white-button.png" alt="Buy me a coffee" width="218" height="61">
+  </a>
+</p>
