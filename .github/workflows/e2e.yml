@@ -1,0 +1,44 @@
+name: tests
+
+# E2E on every push to main (merges land here as push events) and on PRs
+# targeting main, so a break shows up before the merge, not after.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit suite (F1–F14)
+        run: node --test test/unit/*.test.js
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # npm ci alone would download every browser via playwright's
+      # postinstall; skip that and pull only the bundled Chromium the
+      # harness prefers, plus its system libraries.
+      - name: Install test dependencies
+        working-directory: test/e2e
+        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
+      - name: Install bundled Chromium
+        working-directory: test/e2e
+        run: npx playwright install --with-deps chromium
+      # run-e2e.mjs tries headed bundled Chromium first and falls back to
+      # new-headless Chromium on a display-less runner — extensions load
+      # fine in new headless.
+      - name: E2E suite (Playwright, unpacked extension)
+        run: node test/e2e/run-e2e.mjs
