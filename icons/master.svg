@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- FerryCookie master icon — a cookie ferry, side view, bow right.
+       Flat shapes only: must survive 48px; the 16px toolbar glyph is a
+       separate simplified drawing (simple16.svg). -->
+  <defs>
+    <clipPath id="sq">
+      <rect x="4" y="4" width="120" height="120" rx="28"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#sq)">
+    <!-- sky -->
+    <rect x="4" y="4" width="120" height="120" fill="#DFF1FC"/>
+    <!-- far wave -->
+    <path d="M4 90 Q 20 82 36 90 T 68 90 T 100 90 T 132 90 V124 H4 Z" fill="#9CCDF2"/>
+    <!-- near wave -->
+    <path d="M4 100 Q 20 92 36 100 T 68 100 T 100 100 T 132 100 V124 H4 Z" fill="#4EA1E0"/>
+  </g>
+
+  <!-- funnel: warm red with a white band, standing on the cabin roof -->
+  <rect x="58" y="36" width="11" height="14" rx="2" fill="#E2574C"/>
+  <rect x="58" y="40" width="11" height="3.5" fill="#FFFFFF"/>
+
+  <!-- superstructure: white cabin, one row of windows -->
+  <rect x="42" y="50" width="34" height="24" rx="3" fill="#FFFFFF"/>
+  <rect x="46" y="56" width="7" height="7" rx="1.5" fill="#24406B"/>
+  <rect x="56" y="56" width="7" height="7" rx="1.5" fill="#24406B"/>
+  <rect x="66" y="56" width="7" height="7" rx="1.5" fill="#24406B"/>
+
+  <!-- hull: deep navy, bow slanting up to the right -->
+  <path d="M24 72 H108 L96 92 H32 Z" fill="#24406B"/>
+  <!-- car-deck side slots -->
+  <rect x="38" y="78" width="7" height="4" rx="2" fill="#9CCDF2"/>
+  <rect x="50" y="78" width="7" height="4" rx="2" fill="#9CCDF2"/>
+  <rect x="62" y="78" width="7" height="4" rx="2" fill="#9CCDF2"/>
+  <rect x="74" y="78" width="7" height="4" rx="2" fill="#9CCDF2"/>
+
+  <!-- cargo: cookies on the stern and bow decks -->
+  <g>
+    <circle cx="33" cy="66" r="6" fill="#E9A23B" stroke="#C9812A" stroke-width="1.4"/>
+    <circle cx="31.2" cy="64.4" r="1.5" fill="#5B3A21"/>
+    <circle cx="35" cy="66.8" r="1.5" fill="#5B3A21"/>
+    <circle cx="33.2" cy="68.4" r="1.2" fill="#5B3A21"/>
+  </g>
+  <g>
+    <circle cx="97" cy="65" r="7" fill="#E9A23B" stroke="#C9812A" stroke-width="1.4"/>
+    <circle cx="94.6" cy="63" r="1.7" fill="#5B3A21"/>
+    <circle cx="99.4" cy="66.4" r="1.7" fill="#5B3A21"/>
+    <circle cx="96.6" cy="68.2" r="1.4" fill="#5B3A21"/>
+  </g>
+
+  <!-- a cookie riding the wake -->
+  <g>
+    <circle cx="111" cy="94" r="6" fill="#E9A23B" stroke="#C9812A" stroke-width="1.4"/>
+    <circle cx="109.2" cy="92.4" r="1.5" fill="#5B3A21"/>
+    <circle cx="113" cy="94.8" r="1.5" fill="#5B3A21"/>
+    <circle cx="111.2" cy="96.4" r="1.2" fill="#5B3A21"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- FerryCookie 16px toolbar glyph — the simplified reading of the master:
+       one big cookie as cargo, navy hull, a single wave. No background
+       squircle: at 16px it only eats margin. -->
+  <path d="M0 12 Q2 10.4 4 12 T8 12 T12 12 T16 12 V16 H0 Z" fill="#2E86D9"/>
+  <path d="M2 7.2 H14 L12.3 12 H3.7 Z" fill="#24406B"/>
+  <circle cx="8" cy="4.6" r="3.9" fill="#E9A23B" stroke="#C9812A" stroke-width="0.7"/>
+  <circle cx="6.7" cy="3.6" r="0.85" fill="#5B3A21"/>
+  <circle cx="9.4" cy="5.2" r="0.85" fill="#5B3A21"/>
+  <circle cx="7.6" cy="5.9" r="0.7" fill="#5B3A21"/>
+</svg>
