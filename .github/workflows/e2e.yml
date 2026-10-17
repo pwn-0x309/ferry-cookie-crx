@@ -37,8 +37,11 @@ jobs:
       - name: Install bundled Chromium
         working-directory: test/e2e
         run: npx playwright install --with-deps chromium
-      # run-e2e.mjs tries headed bundled Chromium first and falls back to
-      # new-headless Chromium on a display-less runner — extensions load
-      # fine in new headless.
+      # A virtual display lets the harness use its first-choice candidate —
+      # headed bundled Chromium, the same path as local dev. Without xvfb
+      # it falls back to new-headless, where offscreen clipboard writes
+      # (the protect-toggle check) don't reliably land.
+      - name: Install virtual display
+        run: sudo apt-get update -q && sudo apt-get install -y -q xvfb
       - name: E2E suite (Playwright, unpacked extension)
-        run: node test/e2e/run-e2e.mjs
+        run: xvfb-run -a node test/e2e/run-e2e.mjs
