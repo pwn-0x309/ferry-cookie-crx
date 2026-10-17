@@ -1,4 +1,12 @@
+<p align="center">
+  <img src="icons/icon128.png" width="128" alt="FerryCookie — a ferry carrying chocolate-chip cookies" />
+</p>
+
 # FerryCookie
+
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](#is-it-safe)
+[![network egress](https://img.shields.io/badge/network_egress-0-brightgreen)](#is-it-safe)
 
 One-gesture localhost cookie ferry, both directions. **Copy**: click,
 context-menu, or shortcut puts a live site's cookies on your clipboard as
@@ -9,14 +17,132 @@ onto a local jar — with a per-row report and one-click undo.
 Vanilla JS, no build step, no bundler — the whole extension is reviewable in
 one sitting. That is the security pitch.
 
-## Showcase
+## The problem it solves
 
-The whole loop in real screenshots — copy, land, proof, undo, refusals — in
-[docs/showcase.md](docs/showcase.md). The short version:
+Cookies are how a site knows you are logged in. When you develop locally,
+your dev server (`http://localhost:3000` or similar) has a **cookie jar of
+its own** — and that jar starts empty. So your local app treats you as a
+stranger, even though you are logged into the real site in the next tab.
 
-| Copy | Land | Proof |
+The manual fix is fiddly: DevTools → Application → Cookies, copying rows
+one by one, fixing the domain to `localhost`, redoing it whenever the
+session rotates. It is easy to miss a cookie — or to leak a session value
+into a note app along the way.
+
+FerryCookie does the ferry for you, both directions:
+
+- **Copy** — one gesture on the logged-in site (a *grab*). Every host is
+  rewritten to `localhost` before anything touches your clipboard.
+- **Land** — a guarded write onto your local jar: you see a diff of
+  exactly what would happen, you confirm, you get a report verified
+  against the jar, and you can undo with one click.
+
+Three words used throughout, defined once: a *jar* is Chrome's per-domain
+cookie store; a *grab* is one copied session; the *dock* is the extension's
+session-scoped holding area for the latest grab, so the same-browser loop
+does not even need the clipboard.
+
+## Key features
+
+| Feature | What it means for you |
+|---|---|
+| One-gesture copy | Popup button, right-click menu, or `Ctrl/Cmd+Shift+9` — the clipboard holds EditThisCookie-compatible JSON with hosts already rewritten to `localhost`. |
+| Guarded landing | A diff screen before anything is written, four modes (fill-gaps / merge / replace / curated), a report verified by re-reading the jar, and one-click undo. |
+| Fast mode | The popup becomes one button per side: *Grab the cookies* on the site, *Land the transformed cookies here* on localhost. **Land here & Reload** finishes the whole loop in two clicks, with no mouse travel. |
+| Protect list | Tick a cookie name and the ferry never grabs it and never lands over it — honored in both directions. |
+| Refusals, named | Foreign domains, empty jars, stale or unparseable input are refused with the reason spelled out. Nothing happens silently. |
+| Reset | One click beside the Land button clears the docked grab, the credential state, and the clipboard — never your protect list, your undo snapshots, or the landed jar. |
+| Zero egress, session-only storage | No network calls, no telemetry; cookie data lives in `storage.session` and dies with the browser. |
+
+| Copy | Land | Fast mode |
 |---|---|---|
-| ![Copy receipt](docs/screenshots/01-copy-grab.png) | ![Land diff](docs/screenshots/04-land-diff.png) | ![Local dev after landing](docs/screenshots/08-local-after.png) |
+| ![Copy receipt, flags, and protect list](docs/screenshots/01-copy-grab.png) | ![Land diff — action row, math, per-row fate](docs/screenshots/04-land-diff.png) | ![Fast mode — Land the transformed cookies here](docs/screenshots/14-fast-land.png) |
+
+The whole loop in real screenshots — copy, land, proof, undo, refusals,
+fast mode — is [docs/showcase.md](docs/showcase.md).
+
+## Is it safe?
+
+Yes — and you do not have to take anyone's word for it. Everything below
+is verifiable in the source you are about to load:
+
+- **The files you read are the files Chrome runs.** No build step, no
+  bundler, no dependencies — plain JavaScript modules, nothing generated.
+  Suggested reading order: `src/popup/popup.js` (the UI),
+  `src/core/rewrite.js` (the copy core), `src/core/landing.js` (the
+  landing contract).
+- **Zero egress.** The extension never makes a network request. Search the
+  source for `fetch`, `XMLHttpRequest`, or `WebSocket` — there are none.
+  Your cookies go to your clipboard and to a session-scoped store, and
+  nowhere else.
+- **Nothing persists.** Cookie values live only in `storage.session` and
+  are gone when the browser closes. The single exception is the Fast-mode
+  toggle — a boolean, no data.
+- **Every write is a reviewed gesture.** A diff screen precedes every
+  landing; the destructive replace mode makes you type `LAND`; every
+  landing snapshots the jar first, so undo is one click.
+- **Values render as text, always.** Cookie values enter the UI via
+  `textContent`, never as HTML — there is no injection surface in the
+  popup.
+
+**What each permission is for:**
+
+| Permission | Why it exists |
+|---|---|
+| `cookies` + `<all_urls>` | Reading the cookies of whichever site you are logged into — any site, because that is the point. Nothing else in the extension reads pages. |
+| `clipboardWrite` | The copy gestures. |
+| `clipboardRead` | The Land flow's clipboard lane — read only at your explicit **Read input** click. (The paste lane needs no clipboard permission at all.) |
+| `contextMenus`, `offscreen`, `storage` | The right-click gesture, the clipboard fallback that works outside the popup, and session-scoped state. |
+
+**Verify it yourself in five minutes:** `make test` (93 unit checks) and
+`make e2e` (16 end-to-end checks driving a real Chromium through the whole
+loop) — see [Verify](#verify).
+
+## Install from source (developer mode)
+
+You will load the code directly — no store, no packaging. Chrome calls
+this *unpacked*.
+
+1. **Get the code** — `git clone https://github.com/pwn-0x309/ferry-cookie-crx.git`
+   (or *Code → Download ZIP* on GitHub, then unzip it).
+2. **Open the extensions page** — type `chrome://extensions` in the address
+   bar. On macOS you can run `make run` from the repo instead; it opens
+   the page in Google Chrome.
+3. **Turn on Developer mode** — the toggle in the top-right corner of the
+   extensions page.
+4. **Load unpacked** — click *Load unpacked* and select the `ferry-cookie`
+   folder: the one containing `manifest.json`, not its parent.
+5. **Pin it** — click the puzzle-piece icon in Chrome's toolbar and pin
+   FerryCookie, so the ferry is always one click away.
+
+![chrome://extensions with FerryCookie loaded unpacked — Developer mode on, Unpacked badge on the card](docs/screenshots/00-install-extensions-page.png)
+
+Notes, so that nothing surprises you:
+
+- The card carries an **Unpacked** badge — it means *loaded from a
+  folder*, which is exactly what you did on purpose.
+- Chrome may show a *developer mode extensions* notice when the browser
+  restarts. That is the standard reminder that an unpacked extension is
+  present — safe to dismiss.
+- **Updating** — after `git pull`, click the ↻ *Reload* icon on the
+  extension's card. That is the whole update procedure.
+- **Removing** — the *Remove* button on the card. Nothing is left behind,
+  because nothing was persisted.
+
+## Quick start (60 seconds)
+
+1. Open a site you are logged into. Click the FerryCookie icon → **Copy to
+   clipboard** (or flip **Fast mode** on and click **Grab the cookies**).
+2. Open your local dev server — any `http://localhost:<port>`.
+3. Click the icon again → **Land last grab → localhost** (in fast mode:
+   **Land the transformed cookies here**, then **Land here & Reload**).
+4. The page reloads with your session live. Done — and **Undo** on the
+   report screen puts the jar back whenever you want.
+
+---
+
+Everything below is the precise contract — the same content the extension
+is tested against.
 
 ## Layout
 
@@ -46,16 +172,7 @@ test/e2e/                         Playwright: load unpacked, replay F1/F3/F10,
                                   the whole loop, refusals, undo
 ```
 
-## Install
-
-```
-make run        # opens chrome://extensions
-```
-
-Then enable Developer mode and Load unpacked → select this `ferry-cookie/`
-folder.
-
-## Copy (unchanged from v1)
+## Copy — the grab
 
 - **Popup (primary):** click the FerryCookie action. The receipt shows the
   cookie count, the source host, and the grab time. *Copy to clipboard* is
@@ -69,9 +186,8 @@ folder.
 - **Clear:** after any copy the popup shows *clipboard holds credentials*
   with a one-tap **Clear clipboard**.
 - **Context menu / shortcut:** right-click → *Copy cookies as localhost
-  JSON*, or `Ctrl/Cmd+Shift+9`. These gestures copy through the offscreen
-  document; the badge shows the count (or `!` when a page is restricted or
-  has no cookies).
+  JSON*, or `Ctrl/Cmd+Shift+9`. These write the clipboard through an
+  offscreen document and set the badge to the emitted count.
 
 ## Fast mode
 
@@ -95,7 +211,7 @@ are on:
 - Everything else — receipt, flags, protect list, the full land controls —
   folds into a **Details** disclosure, closed by default.
 
-## Land (mvp2)
+## Land — the guarded write
 
 Every successful copy also refreshes the **dock** — the session-scoped copy
 of the grab (an FC envelope: the same ETC rows plus `grabbedAt` /
@@ -234,5 +350,5 @@ Undo puts the jar back.
 
 File-import lane (snapshot `.json` import), inbound `Cookie`-header /
 `cookies.txt` parsing, outbound `curl` / `cookies.txt` dialects, keyboard
-land shortcut, cross-profile routes, settings page — see
-`_bmad-output/specs/spec-ferry-cookie-apply/SPEC.md` (Non-goals).
+land shortcut, cross-profile routes, settings page. These are non-goals by
+design — kept out on purpose, not missing.
