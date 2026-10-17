@@ -165,6 +165,20 @@ async function main() {
     };
 
     const readClipboard = () => targetPage.evaluate(() => navigator.clipboard.readText());
+    // After this page's renderer writes via the async clipboard API (F10's
+    // SENTINEL), Chromium on Linux serves that renderer's own last async
+    // write on readText() — the offscreen document's newer execCommand write
+    // never shows. A fresh page at the same origin reads the real clipboard.
+    const readClipboardFresh = async () => {
+      const probe = await context.newPage();
+      try {
+        await probe.goto(base + '/');
+        await probe.bringToFront();
+        return await probe.evaluate(() => navigator.clipboard.readText());
+      } finally {
+        await probe.close().catch(() => {});
+      }
+    };
 
     const fixture = async (id) => JSON.parse(await readFile(join(here, '..', 'fixtures', `${id}.json`), 'utf8'));
 
@@ -381,7 +395,7 @@ async function main() {
 
         await targetPage.bringToFront();
         assertEq(
-          await readClipboard(),
+          await readClipboardFresh(),
           etcV3.serialize([f3.expected.cookies[0]]),
           'protect clipboard JSON excludes __Host-session',
         );
