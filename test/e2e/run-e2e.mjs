@@ -904,6 +904,9 @@ async function main() {
         // The destination side: localhost — the land button, pinned add-only.
         // The fast preference rode storage.local into this fresh popup.
         await targetPage.bringToFront();
+        await targetPage.evaluate(() => {
+          window.__fcReloadMarker = 'alive'; // dies with the page on reload
+        });
         p = await popup();
         await p.waitForFunction(() => !document.getElementById('fast-land').hidden, null, { timeout: 10000 });
         await p.click('#fast-land');
@@ -913,8 +916,10 @@ async function main() {
           'adds 1',
           'fast land plans the pinned add-only diff',
         );
-        await p.click('#land-confirm');
+        assertEq(await p.isVisible('#land-confirm-reload'), true, 'the reload confirm shows when the active tab is the target');
+        await p.click('#land-confirm-reload');
         await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        await targetPage.waitForFunction(() => window.__fcReloadMarker === undefined, null, { timeout: 10000 });
         const jar = await readJar('localhost');
         assertEq(jar.length, 1, 'fast land wrote the grabbed row');
         assertEq(jar[0]?.value, 'fast-v1');

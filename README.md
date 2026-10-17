@@ -84,8 +84,10 @@ are on:
   cookies**. On success: *Collected {n} cookies from {site}*.
 - **On the destination** (`localhost`, `*.localhost`): **Land the
   transformed cookies here** — the pinned quick path (dock lane, add-only
-  fill-gaps, this host) ending on the same reviewed diff as always. Fast
-  mode removes clicks *before* the write, never the review of the write.
+  fill-gaps, this host) ending on the same reviewed diff, whose confirm row
+  appears at the same spot: **Land here & Reload** finishes the loop with a
+  refreshed page in two clicks, no mouse travel. Fast mode removes clicks
+  *before* the write, never the review of the write.
 - Everything else — receipt, flags, protect list, the full land controls —
   folds into a **Details** disclosure, closed by default.
 
@@ -111,11 +113,15 @@ a collapsed *Change source, route, or mode* disclosure:
    pinned order (ETC v3 → FC envelope → Playwright `addCookies`); input
    that fits two dialects asks you to pick, never guesses. Unparseable or
    empty input disables Land naming the reason.
-4. **The diff screen** — pre-flight math ("adds 4, overwrites 1, excludes 2
-   foreign"), a freshness line ("grab is 5m old"; bare arrays say
-   "age unknown"), and, in replace mode, a typed `LAND` confirmation.
-   Fill-gaps/merge/curated confirm with one click. Enter confirms, Esc
-   backs out.
+4. **The diff screen** — the action row leads the screen (in fast mode it
+   renders exactly where the fast Land button was, so the second click needs
+   no mouse travel): **Land here & Reload** (lands, verifies, then reloads
+   the page — shown only when the active tab is the target), plain
+   **Land here**, and **Back**. Below it: pre-flight math ("adds 4,
+   overwrites 1, excludes 2 foreign"), a freshness line ("grab is 5m old";
+   bare arrays say "age unknown"), and, in replace mode, a typed `LAND`
+   confirmation. Fill-gaps/merge/curated confirm with one click. Enter
+   confirms, Esc backs out.
 5. **The report** — every row's fate in exactly one bucket:
    `landed` / `overwritten` / `skipped-foreign` / `skipped-protected` /
    `invalid` / `failed` — plus `removed` for replace-mode removals, and a

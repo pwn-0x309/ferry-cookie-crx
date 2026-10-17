@@ -53,7 +53,7 @@ const $ = (id) => document.getElementById(id);
 
 const PREFS_KEY = 'fc-land-prefs';
 
-export function initLandFlow({ getProtect, getActiveTabUrl }) {
+export function initLandFlow({ getProtect, getActiveTabUrl, getActiveTab }) {
   const land = {
     view: 'setup', // setup | dialect | diff | report | restore
     chosen: null, // { dialect, parse }
@@ -404,7 +404,16 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
 
     const activeUrl = getActiveTabUrl();
     const activeHost = typeof activeUrl === 'string' && activeUrl ? jarKey(activeUrl) : null;
-    $('land-confirm').textContent = activeHost === pipeline.targetHost ? 'Land here' : `Land to ${pipeline.targetHost}`;
+    const here = activeHost === pipeline.targetHost;
+    $('land-confirm').textContent = here ? 'Land here' : `Land to ${pipeline.targetHost}`;
+    // The reload variant only makes sense when the active tab is the target
+    // — reloading some other page would prove nothing about the landing.
+    const reloadBtn = $('land-confirm-reload');
+    reloadBtn.hidden = !here;
+    if (here) reloadBtn.textContent = 'Land here & Reload';
+    // One amber primary per screen: with both shown, the reload path is the
+    // goal continuation and the plain confirm steps back to an outline.
+    $('land-confirm').classList.toggle('secondary', here);
     updateConfirmGate();
   }
 
@@ -471,43 +480,41 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
 
   function updateConfirmGate() {
     const plan = land.plan;
-    const confirm = $('land-confirm');
+    let disabled;
+    let why = '';
     if (plan.mode === 'replace') {
-      confirm.disabled = $('land-type-land').value !== 'LAND';
-      return;
-    }
-    if (plan.mode === 'curated') {
+      disabled = $('land-type-land').value !== 'LAND';
+    } else if (plan.mode === 'curated') {
       // Gate on the LIVE checked-row count, not the stale full plan — an
       // empty curated selection must never reach a landing.
-      confirm.disabled = checkedCount() === 0;
-      if (confirm.disabled && land.view === 'diff') {
-        reason('curated landing refused — no rows checked (nothing would land, no snapshot taken)');
-      } else {
-        reason('');
-      }
-      return;
-    }
-    confirm.disabled = plan.writes.length === 0;
-    if (confirm.disabled && land.view === 'diff') {
-      // Name the actual cause — zero writes can come from kept rows,
-      // protected rows, or invalid rows, not only "already present".
-      if (plan.keptExisting.length) {
-        reason('nothing to write — every row is already present (fill-gaps keeps them)');
-      } else if (plan.skippedProtectedCount) {
-        reason('nothing to write — every row is protected (skipped, never written)');
-      } else {
-        reason('nothing to write — no rows survived validation');
+      disabled = checkedCount() === 0;
+      if (disabled && land.view === 'diff') {
+        why = 'curated landing refused — no rows checked (nothing would land, no snapshot taken)';
       }
     } else {
-      reason('');
+      disabled = plan.writes.length === 0;
+      if (disabled && land.view === 'diff') {
+        // Name the actual cause — zero writes can come from kept rows,
+        // protected rows, or invalid rows, not only "already present".
+        if (plan.keptExisting.length) {
+          why = 'nothing to write — every row is already present (fill-gaps keeps them)';
+        } else if (plan.skippedProtectedCount) {
+          why = 'nothing to write — every row is protected (skipped, never written)';
+        } else {
+          why = 'nothing to write — no rows survived validation';
+        }
+      }
     }
+    $('land-confirm').disabled = disabled;
+    $('land-confirm-reload').disabled = disabled; // same gate, both confirms
+    if (land.view === 'diff') reason(why);
   }
 
   // -------------------------------------------------------------------------
   // Confirm → land → report
   // -------------------------------------------------------------------------
 
-  async function onConfirm() {
+  async function onConfirm({ reload = false } = {}) {
     const { targetHost, foreign, filtered, invalid, protect, duplicatesCollapsed } = land.pipeline;
     let plan = land.plan;
     let rows = land.pipeline.rows; // the rows the executed plan must be re-derived from
@@ -549,8 +556,21 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
       land.undoSnapshot = result.snapshot;
       renderReport(result.report);
       show('report');
+      if (reload) await reloadActiveTab();
     } catch (err) {
       reason('landing failed: ' + (err?.message ?? String(err)));
+    }
+  }
+
+  // Land & Reload: after the report is on screen, refresh the user's page —
+  // the tab resolved at popup-open (never the popup itself), reloaded only
+  // when it is the landing target. A failed reload never taints the report.
+  async function reloadActiveTab() {
+    try {
+      const tab = getActiveTab?.();
+      if (tab?.id != null) await chrome.tabs.reload(tab.id);
+    } catch {
+      // the landing already reported; the reload is a courtesy
     }
   }
 
@@ -734,6 +754,7 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   });
   $('land-type-land').addEventListener('input', updateConfirmGate);
   $('land-confirm').addEventListener('click', () => guarded(onConfirm));
+  $('land-confirm-reload').addEventListener('click', () => guarded(() => onConfirm({ reload: true })));
   $('land-cancel').addEventListener('click', () => {
     reason('');
     show('setup');

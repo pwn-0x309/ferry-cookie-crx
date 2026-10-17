@@ -100,6 +100,19 @@ body.landing #fast-view {
   display: none;
 }
 
+/* Fast mode mid-landing: the diff's action row takes the fast button's
+   place — nothing between the header and it, so the second click lands
+   where the first one was. */
+body.fast.landing #fast-details {
+  display: none;
+}
+
+body.fast.landing #land-views {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
 #land-views {
   margin-top: 12px;
   border-top: 1px solid var(--line);

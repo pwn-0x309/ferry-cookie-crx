@@ -54,6 +54,7 @@ async function init() {
   landFlowApi = initLandFlow({
     getProtect: () => state.protect,
     getActiveTabUrl: () => state.tab?.url ?? null,
+    getActiveTab: () => state.tab, // for Land & Reload — the page, never the popup
   });
   applyFastMode();
   render();

@@ -80,6 +80,8 @@ On `localhost`, the same popup becomes the destination — one button, the pinne
 
 ![Fast mode on localhost — Land the transformed cookies here](screenshots/14-fast-land.png)
 
+The diff's confirm row appears where that button was — **Land here & Reload** finishes the loop: land, verify, and the page behind the popup refreshes with the session live. Two clicks, no mouse travel.
+
 Everything else — receipt, flags, protect list, the full land controls — waits behind the **Details** disclosure, closed by default. Fast mode removes clicks before the write, never the review of the write.
 
 ## Cheat sheet
@@ -88,7 +90,7 @@ Everything else — receipt, flags, protect list, the full land controls — wai
 |---|---|---|
 | Copy | popup / context menu / `Ctrl+Cmd+Shift+9` | one click + visible credential state |
 | Fast grab | Fast mode, source site | one click, one-sentence receipt |
-| Fast land | Fast mode, `localhost` | one click to the pinned diff |
+| Fast land | Fast mode, `localhost` | one click to the pinned diff, confirm at the same spot — Land here & Reload |
 | Land (quick) | popup → *Land last grab → localhost* | one click, add-only, reviewed on the diff |
 | Land (fill-gaps, merge, curated) | popup → Change source, route, or mode → Read input → Land | one click on the diff |
 | Land (replace) | popup → mode: replace | type `LAND` |

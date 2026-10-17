@@ -127,6 +127,15 @@
     </div>
 
     <div id="land-diff" hidden>
+      <!-- The action row leads the screen — in fast mode it renders where
+           the fast Land button was, so the second click needs no mouse
+           travel. Land & Reload appears only when the active tab IS the
+           target (reloading another page would prove nothing). -->
+      <div class="land-row">
+        <button id="land-confirm-reload">Land here &amp; Reload</button>
+        <button id="land-confirm">Land</button>
+        <button id="land-cancel" class="secondary">Back</button>
+      </div>
       <p id="land-freshness" class="meta"></p>
       <p id="land-math"></p>
       <p id="land-capacity" class="warn-line" hidden></p>
@@ -134,10 +143,6 @@
       <div id="land-replace-gate" hidden>
         <label for="land-type-land">Replace clears the jar first — type LAND to confirm:</label>
         <input type="text" id="land-type-land" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="land-row">
-        <button id="land-confirm">Land</button>
-        <button id="land-cancel" class="secondary">Back</button>
       </div>
     </div>
 
