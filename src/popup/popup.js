@@ -9,6 +9,11 @@ import { initLandFlow } from './land-flow.js';
 
 const $ = (id) => document.getElementById(id);
 
+// Fast mode is a pure UI preference (which surface to lead with) — the only
+// persistent state the extension keeps; every cookie-derived state stays
+// session-scoped.
+const FAST_KEY = 'fc-fast-mode';
+
 const state = {
   tab: null,
   raw: [],
@@ -18,7 +23,11 @@ const state = {
   guard: null,
   cred: null,
   grabbedAt: null,
+  fast: false,
+  fastGrab: null, // the grab made through the fast button, this popup only — never stale session history
 };
+
+let landFlowApi = null;
 
 init();
 
@@ -26,6 +35,8 @@ async function init() {
   wireEvents();
   chrome.action.setBadgeText({ text: '' }); // the popup shows the full receipt
   try {
+    const storedFast = await chrome.storage.local.get(FAST_KEY);
+    state.fast = storedFast[FAST_KEY] === true;
     // The protect list is session state shared by copy and landing; load it
     // even on guarded pages so the Land flow can honor it anywhere.
     const storedProtect = await chrome.storage.session.get({ 'fc-protect': [] });
@@ -40,10 +51,11 @@ async function init() {
   } catch (err) {
     state.guard = 'error: ' + (err?.message ?? String(err));
   }
-  initLandFlow({
+  landFlowApi = initLandFlow({
     getProtect: () => state.protect,
     getActiveTabUrl: () => state.tab?.url ?? null,
   });
+  applyFastMode();
   render();
   // One-time, on popup open: if a protected row is in the preview, expand it
   // so the checkbox — the only way back out of the protect list — is not
@@ -57,6 +69,9 @@ function wireEvents() {
   $('copy').addEventListener('click', onCopy);
   $('clear').addEventListener('click', onClear);
   $('preview-list').addEventListener('change', onProtectToggle);
+  $('fast-toggle').addEventListener('change', onFastToggle);
+  $('fast-grab').addEventListener('click', onCopy); // the same grab gesture, one-button surface
+  $('fast-land').addEventListener('click', onFastLand);
 }
 
 async function refreshGrab() {
@@ -86,10 +101,12 @@ async function onCopy() {
   const text = etcV3.serialize(state.grab.cookies);
   try {
     await navigator.clipboard.writeText(text); // the popup click is the user gesture
-    state.cred = { holds: true, count: state.grab.cookies.length, at: Date.now() };
+    state.cred = { holds: true, count: state.grab.cookies.length, at: Date.now(), site: jarKey(state.tab.url) };
+    if (state.fast) state.fastGrab = state.cred;
     await chrome.storage.session.set({ 'fc-cred': state.cred, 'fc-receipt': receiptOf() });
   } catch (err) {
     state.cred = { holds: false, error: err?.message ?? String(err) };
+    if (state.fast) state.fastGrab = state.cred;
     render();
     return;
   }
@@ -146,6 +163,41 @@ function receiptOf() {
   };
 }
 
+// Fast mode: the popup is one button. The destination side is the localhost
+// family (the grab's rewrite target); everything else — real sites, and the
+// alternate loopback jars 127.0.0.1/[::1] used as production stand-ins — is
+// a grab side.
+function isDestSide() {
+  if (!state.tab?.url) return false;
+  const host = jarKey(state.tab.url);
+  return host === 'localhost' || host.endsWith('.localhost');
+}
+
+function applyFastMode() {
+  document.body.classList.toggle('fast', state.fast);
+  $('fast-toggle').checked = state.fast;
+  // Details (receipt, flags, protect list, land controls) reads like today's
+  // UI in full mode; fast mode keeps it closed until asked for. Manual opens
+  // survive — this runs only on init and on the toggle, never on render.
+  $('fast-details').open = !state.fast;
+}
+
+async function onFastToggle() {
+  state.fast = $('fast-toggle').checked;
+  try {
+    await chrome.storage.local.set({ [FAST_KEY]: state.fast });
+  } catch {
+    // a missed preference persistence must not break the surface switch
+  }
+  applyFastMode();
+  render();
+}
+
+function onFastLand() {
+  if (!isDestSide() || !landFlowApi) return;
+  landFlowApi.quickLandTo(jarKey(state.tab.url)); // pinned: dock, fill-gaps, this host
+}
+
 function timeOf(ts) {
   return ts ? new Date(ts).toLocaleTimeString() : '';
 }
@@ -187,8 +239,36 @@ function render() {
   renderCred();
   renderFlags();
   renderPreview();
+  renderFast(emitted);
 
   $('copy').disabled = Boolean(state.guard) || emitted === 0;
+}
+
+function renderFast(emitted) {
+  if (!state.fast) {
+    $('fast-view').hidden = true;
+    return;
+  }
+  const dest = isDestSide();
+  $('fast-view').hidden = false;
+  $('fast-grab').hidden = dest;
+  $('fast-land').hidden = !dest;
+  $('fast-land-meta').hidden = !dest;
+  $('fast-grab').disabled = Boolean(state.guard) || emitted === 0; // same gate as Copy
+
+  const res = $('fast-result');
+  const grab = state.fastGrab;
+  if (!dest && grab?.holds) {
+    res.textContent = `Collected ${grab.count} cookie${grab.count === 1 ? '' : 's'} from ${grab.site}`;
+    res.classList.remove('error');
+    res.hidden = false;
+  } else if (!dest && grab && !grab.holds) {
+    res.textContent = `Grab failed — ${grab.error}`;
+    res.classList.add('error');
+    res.hidden = false;
+  } else {
+    res.hidden = true;
+  }
 }
 
 function renderCred() {

@@ -131,6 +131,9 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   function show(view) {
     land.view = view;
     for (const id of views) $(id).hidden = id !== 'land-' + view;
+    // The landing views live outside the Details disclosure (they must show
+    // in fast mode); the wrapper draws their separator only when active.
+    $('land-views').hidden = view === 'setup';
     // While a landing is in progress the copy flow demotes to secondary —
     // one primary action per screen.
     document.body.classList.toggle('landing', view !== 'setup');
@@ -222,10 +225,16 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
   }
 
   // The quick action is the safe path by construction — pinned defaults, no
-  // matter what the power controls or session prefs say.
-  async function onQuickLand() {
+  // matter what the power controls or session prefs say. fast mode's Land
+  // button reuses it against the active destination host (guarded at the
+  // export — the quick button already wraps its own handler).
+  function quickLandTo(targetHost) {
     reason('');
-    await runRead({ lane: 'dock', targetHost: 'localhost', mode: 'fill-gaps', advanced: false });
+    return runRead({ lane: 'dock', targetHost, mode: 'fill-gaps', advanced: false });
+  }
+
+  async function onQuickLand() {
+    await quickLandTo('localhost');
   }
 
   function renderDialectOptions(candidates) {
@@ -758,5 +767,5 @@ export function initLandFlow({ getProtect, getActiveTabUrl }) {
 
   show('setup');
   restorePrefs();
-  return { land };
+  return { land, quickLandTo: (host) => guarded(() => quickLandTo(host)) };
 }

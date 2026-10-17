@@ -9,6 +9,10 @@
   <header>
     <h1>FerryCookie</h1>
     <p id="source-line" class="meta"></p>
+    <label id="fast-mode-row" for="fast-toggle">
+      <input type="checkbox" id="fast-toggle">
+      <span>Fast mode</span>
+    </label>
   </header>
 
   <section id="guard" hidden>
@@ -16,7 +20,24 @@
     <p id="guard-hint" class="meta"></p>
   </section>
 
-  <section id="receipt" hidden>
+  <!-- Fast mode surface: exactly one button for the side you are on. -->
+  <div id="fast-view" hidden>
+    <button id="fast-grab" class="full">Grab the cookies</button>
+    <p id="fast-result" hidden></p>
+    <button id="fast-land" class="full" hidden>Land the transformed cookies here</button>
+    <p id="fast-land-meta" class="meta" hidden>Dock → this host, adds only — reviewed on the diff before anything is written.</p>
+  </div>
+
+  <!-- Refusals from the land flow must stay visible in fast mode too, so
+       this line lives outside the Details disclosure. -->
+  <p id="land-reason" class="meta" hidden></p>
+
+  <!-- Everything detailed folds in here: open (and summary hidden) in full
+       mode — the layout is unchanged — collapsed by default in fast mode. -->
+  <details id="fast-details" open>
+    <summary>Details</summary>
+
+    <section id="receipt" hidden>
     <p><strong id="receipt-count"></strong> <span id="receipt-cookies-label">cookies</span> · grabbed <time id="receipt-time"></time></p>
   </section>
 
@@ -33,10 +54,6 @@
 
   <section id="land">
     <h2 id="land-heading">Land</h2>
-
-    <!-- Lives outside every view container: refusals raised on the diff,
-         report, dialect, or restore screens must stay visible. -->
-    <p id="land-reason" class="meta" hidden></p>
 
     <div id="land-setup">
       <button id="land-quick" class="full">Land last grab → localhost</button>
@@ -94,7 +111,12 @@
         <ul id="land-snapshot-list"></ul>
       </div>
     </div>
+  </section>
+  </details>
 
+  <!-- Landing views render outside the Details disclosure so they appear
+       even while fast mode keeps everything else folded away. -->
+  <section id="land-views">
     <div id="land-dialect" hidden>
       <p>Input parses as more than one dialect. Which is it?</p>
       <div id="land-dialect-options"></div>

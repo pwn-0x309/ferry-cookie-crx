@@ -170,7 +170,29 @@ try {
   await p.close();
   await emptyPage.close();
 
-  console.log('captured: 01..11 in ' + outDir);
+  // 12/13 — fast mode on the source side: one button, then the receipt line
+  await source.bringToFront();
+  p = await popup();
+  await p.waitForFunction(() => document.getElementById('copy')?.disabled === false, null, { timeout: 10000 });
+  await p.check('#fast-toggle');
+  await sleep(300);
+  await p.screenshot({ path: resolve(outDir, '12-fast-grab.png'), fullPage: true });
+  await p.click('#fast-grab');
+  await p.waitForFunction(() => !document.getElementById('fast-result').hidden, null, { timeout: 5000 });
+  await sleep(300);
+  await p.screenshot({ path: resolve(outDir, '13-fast-result.png'), fullPage: true });
+  await p.close();
+
+  // 14 — fast mode on the destination side: the land button
+  await local.bringToFront();
+  p = await popup();
+  await p.waitForFunction(() => !document.getElementById('fast-land').hidden, null, { timeout: 10000 });
+  await sleep(300);
+  await p.screenshot({ path: resolve(outDir, '14-fast-land.png'), fullPage: true });
+  await p.uncheck('#fast-toggle'); // leave the profile in full mode
+  await p.close();
+
+  console.log('captured: 01..14 in ' + outDir);
 } finally {
   // Close every server — an open listen socket would keep the event loop
   // alive and hang the run after "captured".

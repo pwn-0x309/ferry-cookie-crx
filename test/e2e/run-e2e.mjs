@@ -869,6 +869,68 @@ async function main() {
         record(name, err);
       }
     }
+
+    // ---- fast mode: one button per side, details collapsed ---------------
+    {
+      const name = 'fast mode — grab on the source side, land on the destination side';
+      let p;
+      let sourcePage;
+      try {
+        await context.clearCookies();
+        // The source side: 127.0.0.1 — not the localhost family, so fast
+        // mode shows the grab button there (real sites behave the same).
+        sourcePage = await context.newPage();
+        await sourcePage.goto(altBase + '/');
+        await sourcePage.bringToFront();
+        await seedCookies([
+          { name: 'sid', value: 'fast-v1', url: altBase + '/', secure: true, httpOnly: true, sameSite: 'Lax', expires: 1810000000.5 },
+        ]);
+        p = await popup();
+        await p.waitForFunction(() => document.getElementById('copy')?.disabled === false, null, { timeout: 10000 });
+        await p.check('#fast-toggle');
+        assertEq(await p.isVisible('#fast-grab'), true, 'fast mode shows the grab button on the source side');
+        assertEq(await p.isVisible('#copy'), false, 'the footer copy controls are folded away in fast mode');
+        assertEq(await p.$eval('#fast-details', (d) => d.open), false, 'details collapsed by default in fast mode');
+        assertEq(await p.isVisible('#land-quick'), false, 'the full land controls are folded away');
+        await p.click('#fast-grab');
+        await p.waitForFunction(() => !document.getElementById('fast-result').hidden, null, { timeout: 5000 });
+        assertIncludes(
+          await p.evaluate(() => document.getElementById('fast-result').textContent),
+          'Collected 1 cookie from 127.0.0.1',
+          'the grab success message names count and site',
+        );
+        await p.close();
+
+        // The destination side: localhost — the land button, pinned add-only.
+        // The fast preference rode storage.local into this fresh popup.
+        await targetPage.bringToFront();
+        p = await popup();
+        await p.waitForFunction(() => !document.getElementById('fast-land').hidden, null, { timeout: 10000 });
+        await p.click('#fast-land');
+        await p.waitForFunction(() => !document.getElementById('land-diff').hidden, null, { timeout: 10000 });
+        assertIncludes(
+          await p.evaluate(() => document.getElementById('land-math').textContent),
+          'adds 1',
+          'fast land plans the pinned add-only diff',
+        );
+        await p.click('#land-confirm');
+        await p.waitForFunction(() => !document.getElementById('land-report').hidden, null, { timeout: 10000 });
+        const jar = await readJar('localhost');
+        assertEq(jar.length, 1, 'fast land wrote the grabbed row');
+        assertEq(jar[0]?.value, 'fast-v1');
+        // Leaving fast mode restores the full surface.
+        await p.click('#land-done');
+        await p.uncheck('#fast-toggle');
+        assertEq(await p.isVisible('#copy'), true, 'the full surface returns when fast mode is off');
+        record(name);
+        await p.close();
+        await sourcePage.close();
+      } catch (err) {
+        await p?.close().catch(() => {});
+        await sourcePage?.close().catch(() => {});
+        record(name, err);
+      }
+    }
   } finally {
     await context.close().catch(() => {});
     server.close();

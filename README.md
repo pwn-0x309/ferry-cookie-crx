@@ -73,6 +73,22 @@ folder.
   document; the badge shows the count (or `!` when a page is restricted or
   has no cookies).
 
+## Fast mode
+
+A toggle at the top of the popup (persists across restarts — it is a UI
+preference, not data). When on, the popup is one button for the side you
+are on:
+
+- **On the source site** (anything outside the `localhost` family — real
+  sites, and the `127.0.0.1`/`[::1]` production stand-ins): **Grab the
+  cookies**. On success: *Collected {n} cookies from {site}*.
+- **On the destination** (`localhost`, `*.localhost`): **Land the
+  transformed cookies here** — the pinned quick path (dock lane, add-only
+  fill-gaps, this host) ending on the same reviewed diff as always. Fast
+  mode removes clicks *before* the write, never the review of the write.
+- Everything else — receipt, flags, protect list, the full land controls —
+  folds into a **Details** disclosure, closed by default.
+
 ## Land (mvp2)
 
 Every successful copy also refreshes the **dock** — the session-scoped copy
@@ -174,7 +190,9 @@ path reads the clipboard except the explicit **Read input** click.
 - Zero egress, zero telemetry.
 - Cookie values at rest live only in `storage.session` — the dock grab and
   the undo snapshots. **Snapshots die with the browser; that is the
-  retention policy.** Up to 3 are kept, oldest evicted.
+  retention policy.** Up to 3 are kept, oldest evicted. The one deliberate
+  exception: the Fast-mode boolean (a UI preference, no cookie data) persists
+  in `storage.local`.
 - Cookie values are rendered via `textContent` only, never HTML.
 - An empty array never reaches the clipboard; restricted pages
   (`chrome://`, Web Store, PDF viewer, extension pages) and zero-cookie

@@ -66,11 +66,29 @@ Pages with nothing to ferry disable the action with the reason instead of a dead
 
 ![Zero-cookie page — named disable](screenshots/11-guard-empty-jar.png)
 
+## 8 · Fast mode — the popup is one button
+
+Flip **Fast mode** (top of the popup, remembered across restarts) and the whole interface collapses to the side you're on. On the source site, one button:
+
+![Fast mode on the source — Grab the cookies](screenshots/12-fast-grab.png)
+
+One click, and the receipt is a single sentence:
+
+![Fast mode grab result — Collected 3 cookies from 127.0.0.1](screenshots/13-fast-result.png)
+
+On `localhost`, the same popup becomes the destination — one button, the pinned add-only path onto this host, still ending on the reviewed diff:
+
+![Fast mode on localhost — Land the transformed cookies here](screenshots/14-fast-land.png)
+
+Everything else — receipt, flags, protect list, the full land controls — waits behind the **Details** disclosure, closed by default. Fast mode removes clicks before the write, never the review of the write.
+
 ## Cheat sheet
 
 | Gesture | Where | Posture |
 |---|---|---|
 | Copy | popup / context menu / `Ctrl+Cmd+Shift+9` | one click + visible credential state |
+| Fast grab | Fast mode, source site | one click, one-sentence receipt |
+| Fast land | Fast mode, `localhost` | one click to the pinned diff |
 | Land (quick) | popup → *Land last grab → localhost* | one click, add-only, reviewed on the diff |
 | Land (fill-gaps, merge, curated) | popup → Change source, route, or mode → Read input → Land | one click on the diff |
 | Land (replace) | popup → mode: replace | type `LAND` |

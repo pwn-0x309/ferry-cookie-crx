@@ -44,6 +44,68 @@ header h1 {
   word-break: break-all;
 }
 
+#fast-mode-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0 8px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  word-break: normal;
+}
+
+#fast-view {
+  margin: 8px 0;
+}
+
+#fast-result {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border: 1px solid var(--ok-border);
+  border-radius: 6px;
+  background: var(--ok-bg);
+}
+
+#fast-result.error {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+
+#fast-land-meta {
+  margin: 4px 0 0;
+}
+
+#fast-details summary {
+  cursor: pointer;
+  user-select: none;
+  margin: 8px 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Full mode: the Details wrapper is transparent — open, no summary, the
+   layout identical to before fast mode existed. */
+body:not(.fast) #fast-details > summary {
+  display: none;
+}
+
+/* Fast mode: one button is the surface; the footer's copy controls and the
+   in-progress fast buttons step aside while a landing is reviewed. */
+body.fast footer {
+  display: none;
+}
+
+body.landing #fast-view {
+  display: none;
+}
+
+#land-views {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
 #guard {
   padding: 8px 10px;
   border: 1px solid var(--warn-border);
